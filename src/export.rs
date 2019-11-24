@@ -1,6 +1,12 @@
+use heapless::Vec;
+use heapless::consts::*;
+
 #[no_mangle]
-pub extern fn sp(a: i32, b: i32) -> i32 {
-    a + b
+pub extern fn holder(feed: *mut u8, len: usize) {
+    unsafe {
+//        let mut vec = from_raw_parts_mut(feed, len);
+//        let str = from_utf8_mut(vec).unwrap();
+    }
 }
 
 #[no_mangle]
@@ -10,10 +16,5 @@ pub extern fn nothing() {}
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
-
-    #[test]
-    fn test_simple() {
-        assert_eq!(sp(1, 2), 3);
-    }
 }
 
