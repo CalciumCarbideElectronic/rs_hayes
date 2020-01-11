@@ -5,6 +5,11 @@ replace-with = 'ustc'
 [source.ustc]
 registry = "git://mirrors.ustc.edu.cn/crates.io-index"
 
+[target.thumbv7m-none-eabi]
+linker = "arm-none-eabi-ld"
+ar = "arm-none-eabi-ar"
+
+
 
 
 
