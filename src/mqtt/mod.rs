@@ -3,6 +3,7 @@ use bitflags::bitflags;
 
 pub mod cfg;
 pub mod connect;
+pub mod publish;
 
 bitflags!{
     pub struct MQTTFlags: u8{
