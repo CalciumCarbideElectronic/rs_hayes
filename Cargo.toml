@@ -3,14 +3,22 @@ name = "BC26"
 version = "0.1.0"
 authors = ["CNLHC <cn_lhc@qq.com>"]
 edition = "2018"
+
 [lib]
 name = "BC26"
 crate-type = ["staticlib"]
+
+[features]
+armv7m = []
+unix = []
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 
-
 heapless="0.5.1"
+bitflags = "1.0"
+alloc-cortex-m = "0.3.5"
+
+
 

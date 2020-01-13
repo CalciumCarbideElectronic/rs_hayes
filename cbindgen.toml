@@ -6,4 +6,9 @@ namespace = "BC26"
 trailer = "/* Bye */"
 
 
+[macro_expansion]
+# Whether bindings should be generated for instances of the bitflags! macro.
+# default: false
+bitflags = true
+
 

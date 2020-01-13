@@ -9,6 +9,10 @@ registry = "git://mirrors.ustc.edu.cn/crates.io-index"
 linker = "arm-none-eabi-ld"
 ar = "arm-none-eabi-ar"
 
+[target.thumbv7em-none-eabihf]
+linker = "arm-none-eabi-ld"
+ar = "arm-none-eabi-ar"
+
 
 
 
