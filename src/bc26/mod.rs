@@ -3,8 +3,8 @@ use heapless::Vec;
 use heapless::mpmc::Q32;
 use heapless::consts::U100;
 use crate::constant::{ERR_STATE_MISMATCH, OK};
-use crate::import::uart_send;
-use crate::BC26::BC26State::WaitForProcess;
+use crate::cffi::import::uart_send;
+use crate::bc26::BC26State::WaitForProcess;
 use heapless::i::String;
 
 #[derive(Eq, PartialEq)]
@@ -71,5 +71,6 @@ mod tests {
 
     #[test]
     fn test_bc_26() {}
+
 }
 

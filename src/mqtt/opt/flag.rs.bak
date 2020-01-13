@@ -1,0 +1,37 @@
+use crate::mqtt::MQTT;
+
+//will_fg: 0
+//will_qos:  1-2
+//timeout_notice: 3
+//clean_session: 4
+//version: 5-7
+//send_format:8
+//recv_format:9
+//recv_format:10
+impl MQTT{
+    pub fn will_fg(&self) -> u8{
+        (self.flag >> 0) as u8
+    }
+    pub fn will_qos(&self) -> u8{
+        (self.flag  >> 1) &  as u8
+    }
+    pub fn imeout_notice(&self) -> u8{
+        (self.flag  >> 3) as u8
+    }
+    pub fn clean_session(&self) -> u8{
+        (self.flag  >> 1) as u8
+    }
+    pub fn version(&self) -> u8{
+        (self.flag  >> 1) as u8
+    }
+    pub fn send_format(&self) -> u8{
+        (self.flag  >> 1) as u8
+    }
+    pub fn recv_format(&self) -> u8{
+        (self.flag  >> 1) as u8
+    }
+    pub fn echo_mode(&self) -> u8{
+        (self.flag  >> 1) as u8
+    }
+
+}
