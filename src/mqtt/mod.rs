@@ -1,6 +1,8 @@
 mod opt;
 use bitflags::bitflags;
 
+pub mod cfg;
+
 bitflags!{
     pub struct MQTTFlags: u8{
         const will = (1<<0);
@@ -14,6 +16,7 @@ bitflags!{
     }
 }
 
+#[derive(Debug)]
 pub struct MQTT{
     session: u8,
     host: &'static str,
@@ -27,19 +30,50 @@ pub struct MQTT{
     will_msg: &'static str,
     flag: MQTTFlags
 }
+
+impl Default for MQTT{
+    fn default()->MQTT{
+        MQTT{
+            session: 0,
+            host: "",
+            port: 0,
+            pkg_timeout: 0,
+            retry_times:0,
+            will_qos :0,
+            version :0,
+            keep_alive:0,
+            will_topic: "",
+            will_msg: "",
+            flag: MQTTFlags::empty()
+        }
+    }
+}
+
 impl MQTT{
-
-    pub fn set_will(){ }
-    pub fn set_timeout(){}
-    pub fn set_keepalive(){}
-    pub fn set_version(){}
-    pub fn set_format(){}
-    pub fn set_echomode(){}
-
 }
 
 #[cfg(test)]
 mod tests{
-    use super::{MQTT};
+    use super::{MQTT,MQTTFlags};
+    use std::println;
+    fn getMqttObj()->MQTT{
+        MQTT{
+            session:0,
+            host:"foo.bar.com",
+            port:12345,
+            will_qos:2,
+            will_topic:"foo",
+            will_msg:"msg",
+            flag: MQTTFlags::will | MQTTFlags::keep_alive,
+            ..Default::default()}
+    }
+
+    #[test]
+    pub fn test_foo(){
+        let a = getMqttObj();
+        println!("{:?}",a);
+
+    }
+
 }
 
