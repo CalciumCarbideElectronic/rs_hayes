@@ -2,6 +2,7 @@ mod opt;
 use bitflags::bitflags;
 
 pub mod cfg;
+pub mod connect;
 
 bitflags!{
     pub struct MQTTFlags: u8{
