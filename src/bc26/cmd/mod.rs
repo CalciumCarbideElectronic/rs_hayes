@@ -5,7 +5,7 @@ use core::iter::Iterator;
 
 pub enum CommandParamater<'a>{ 
     literal(&'a str),
-    numerical(&'a u32),
+    numerical( u32),
 }
 
 pub struct Command<'a> {
@@ -40,7 +40,7 @@ mod test{
         Command{
             base:"AT+QATWAKEUP",
             parameters: vec![
-                CommandParamater::numerical(&1)
+                CommandParamater::numerical(1)
             ]
         }
     }
@@ -60,7 +60,7 @@ mod test{
     #[test]
     fn test_as_exec(){
         let c = getCommand();
-        assert_eq!(c.as_read().as_str(),"AT+QATWAKEUP")
+        assert_eq!(c.as_exec().as_str(),"AT+QATWAKEUP")
     }
 
     #[test]

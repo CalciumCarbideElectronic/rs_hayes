@@ -23,6 +23,7 @@ impl MQTT {
     pub fn set_disconn(&self)->Box<String>{
         Box::new(format!(r#"AT+QMTDISC={:}"#,self.session))
     }
+    
 }
 
 
