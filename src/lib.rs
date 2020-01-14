@@ -1,4 +1,4 @@
-#![no_std]
+#![cfg_attr(not(test), no_std)]
 #![feature(const_raw_ptr_deref)]
 #![feature(lang_items)]
 #![feature(alloc)]
@@ -14,7 +14,6 @@ pub mod export;
 mod allocator;
 mod panic;
 mod mqtt;
-mod util;
 mod cffi;
 mod bc26;
 mod constant;

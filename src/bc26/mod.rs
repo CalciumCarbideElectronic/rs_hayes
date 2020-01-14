@@ -1,3 +1,5 @@
+pub mod cmd;
+
 use core::result::Result;
 use heapless::Vec;
 use heapless::mpmc::Q32;
