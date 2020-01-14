@@ -1,5 +1,4 @@
 use alloc_cortex_m::CortexMHeap;
-use alloc::fmt::format;
 use crate::cffi::import;
 
 #[cfg(not(test))]

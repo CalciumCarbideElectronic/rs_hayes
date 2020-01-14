@@ -1,8 +1,6 @@
 #![cfg_attr(not(test), no_std)]
 #![feature(const_raw_ptr_deref)]
 #![feature(lang_items)]
-#![feature(alloc)]
-#![feature(global_allocator)]
 #![feature(alloc_error_handler)]
 
 #[macro_use]
