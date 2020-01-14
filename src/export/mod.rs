@@ -56,14 +56,6 @@ pub extern fn print_pointer(tag: *const u8, p: * const u8) {
     }
 }
 
-
-#[no_mangle]
-pub extern fn send_cmd(p: *mut BC26, cmd: *const u8, len: u16) {
-    let obj = unsafe { &mut *p };
-    let a = from_utf8(unsafe { core::slice::from_raw_parts(cmd, len as usize) }).unwrap_or("");
-    obj.send_cmd(a);
-}
-
 #[no_mangle]
 pub extern fn nothing() {}
 

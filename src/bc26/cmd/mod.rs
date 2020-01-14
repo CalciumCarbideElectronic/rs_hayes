@@ -8,23 +8,27 @@ use alloc::{
 use core::iter::Iterator;
 
 
+#[derive(Clone)]
 pub enum CommandParamater{ 
     Literal(String),
     Numerical( u32),
 }
 
-#[derive(Debug,Eq,PartialEq)]
+#[derive(Debug,Eq,PartialEq,Clone)]
+pub struct Standard{
+    pub key: String,
+    pub parameter: Vec<String>
+}
+#[derive(Debug,Eq,PartialEq,Clone)]
 pub enum Response{
     OK,
     Error,
-    Standard{
-        key: String,
-        parameter: Vec<String>
-    },
+    Standard(Standard),
     KVs(BTreeMap<String,String>),
     Genric (String),
 }
 
+#[derive(Clone)]
 pub struct Command {
     pub base: &'static str,
     pub key: &'static str,

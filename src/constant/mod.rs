@@ -1,2 +1,5 @@
-pub struct  OK;
-pub struct  ErrStateMismatch;
+pub enum BC26Status{
+    Ok,
+    ErrStateMismatch
+
+}
