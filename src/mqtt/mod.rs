@@ -66,7 +66,7 @@ mod tests{
             will_qos:2,
             will_topic:"foo",
             will_msg:"msg",
-            flag: MQTTFlags::will | MQTTFlags::keep_alive,
+            flag: MQTTFlags::WILL | MQTTFlags::KEEP_ALIVE,
             ..Default::default()}
     }
 

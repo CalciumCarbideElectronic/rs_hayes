@@ -59,7 +59,7 @@ mod test{
             key:"QATWAKEUP",
             base:"AT+QATWAKEUP",
             parameters: vec![
-                CommandParamater::numerical(1)
+                CommandParamater::Numerical(1)
             ]
         }
     }
@@ -87,7 +87,7 @@ mod test{
         let mut c = getCommand();
         assert_eq!(c.as_write().as_str(),"AT+QATWAKEUP=1");
         c.parameters.push(
-            CommandParamater::literal("foo".to_string())
+            CommandParamater::Literal("foo".to_string())
         );
         assert_eq!(c.as_write().as_str(),r#"AT+QATWAKEUP=1,"foo""#);
     }

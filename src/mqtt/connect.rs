@@ -27,7 +27,7 @@ impl MQTT {
 
 #[cfg(test)]
 mod tests{
-    use super::{MQTT,MQTTFlags};
+    use super::super::{MQTT,MQTTFlags};
     use std::println;
     fn getMqttObj()->MQTT{
         MQTT{
@@ -40,9 +40,9 @@ mod tests{
             retry_times:5,
             pkg_timeout:7,
             version:3,
-            flag: MQTTFlags::will |
-                  MQTTFlags::keep_alive |
-                  MQTTFlags::will_retain,
+            flag: MQTTFlags::WILL |
+                  MQTTFlags::KEEP_ALIVE |
+                  MQTTFlags::WILL_RETAIN,
             ..Default::default()}
     }
 

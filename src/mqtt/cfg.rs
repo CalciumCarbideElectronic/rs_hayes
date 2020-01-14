@@ -130,9 +130,9 @@ mod tests{
             retry_times:5,
             pkg_timeout:7,
             version:3,
-            flag: MQTTFlags::will |
-                  MQTTFlags::keep_alive |
-                  MQTTFlags::will_retain,
+            flag: MQTTFlags::WILL |
+                  MQTTFlags::KEEP_ALIVE |
+                  MQTTFlags::WILL_RETAIN,
             ..Default::default()}
     }
 
@@ -140,7 +140,7 @@ mod tests{
     pub fn test_set_will(){
         let mut a = getMqttObj();
         assert_eq!(a.set_will().as_str(),r#"AT+QMTCFG="WILL",3,1,2,1,"foo","msg""#);
-        a.flag=a.flag-MQTTFlags::will;
+        a.flag=a.flag-MQTTFlags::WILL;
         assert_eq!(a.set_will().as_str(),r#"AT+QMTCFG="WILL",3"#);
     }
     #[test]
@@ -153,7 +153,7 @@ mod tests{
     pub fn test_set_session(){
         let mut a = getMqttObj();
         assert_eq!(a.set_session().as_str(),r#"AT+QMTCFG="SESSION",3"#);
-        a.flag=a.flag | MQTTFlags::clean_session;
+        a.flag=a.flag | MQTTFlags::CLEAN_SESSION;
         assert_eq!(a.set_session().as_str(),r#"AT+QMTCFG="SESSION",3,1"#);
     }
 
@@ -176,9 +176,9 @@ mod tests{
     pub fn test_setdataformat(){
         let mut a = getMqttObj();
         assert_eq!(a.set_dataformat().as_str(),r#"AT+QMTCFG="dataformat",3,0,0"#);
-        a.flag= a.flag|MQTTFlags::send_format;
+        a.flag= a.flag|MQTTFlags::SEND_FORMAT;
         assert_eq!(a.set_dataformat().as_str(),r#"AT+QMTCFG="dataformat",3,1,0"#);
-        a.flag= a.flag|MQTTFlags::send_format|MQTTFlags::recv_format;
+        a.flag= a.flag|MQTTFlags::SEND_FORMAT|MQTTFlags::RECV_FORMAT;
         assert_eq!(a.set_dataformat().as_str(),r#"AT+QMTCFG="dataformat",3,1,1"#);
     }
 
@@ -186,7 +186,7 @@ mod tests{
     pub fn test_echomode(){
         let mut a = getMqttObj();
         assert_eq!(a.set_echomode().as_str(),r#"AT+QMTCFG="echomode",3,0"#);
-        a.flag= a.flag|MQTTFlags::echo_mode;
+        a.flag= a.flag|MQTTFlags::ECHO_MODE;
         assert_eq!(a.set_echomode().as_str(),r#"AT+QMTCFG="echomode",3,1"#);
     }
 

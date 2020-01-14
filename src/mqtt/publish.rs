@@ -33,9 +33,9 @@ mod tests{
             retry_times:5,
             pkg_timeout:7,
             version:3,
-            flag: MQTTFlags::will |
-                  MQTTFlags::keep_alive |
-                  MQTTFlags::will_retain,
+            flag: MQTTFlags::WILL |
+                  MQTTFlags::KEEP_ALIVE |
+                  MQTTFlags::WILL_RETAIN,
             ..Default::default()}
     }
 
@@ -44,7 +44,6 @@ mod tests{
         let mut a = getMqttObj();
         assert_eq!(a.cmd_publish(65533,2,false,"foo","hello,world").as_str(),
         r#"AT+QMTPUB=3,65533,2,0,"foo","hello,world""#);
-        a.flag=a.flag| MQTTFlags::send_format;
 
         // assert_eq!(a.cmd_publish(65533,2,false,"foo","hello,world").as_str(),
         // r#"AT+QMTPUB=3,65533,2,0,"foo","68656c6c6f2c776f726c64""#);
