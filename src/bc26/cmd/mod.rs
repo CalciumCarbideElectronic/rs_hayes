@@ -1,19 +1,37 @@
-use alloc::vec::Vec;
-use alloc::boxed::Box;
-use alloc::string::String;
+pub mod parse;
+use alloc::{
+    vec::Vec,
+    boxed::Box,
+    string::String,
+    collections::BTreeMap
+};
 use core::iter::Iterator;
 
-pub enum CommandParamater<'a>{ 
-    literal(&'a str),
-    numerical( u32),
+
+pub enum CommandParamater{ 
+    Literal(String),
+    Numerical( u32),
 }
 
-pub struct Command<'a> {
-    pub base: &'a str,
-    pub parameters:  Vec< CommandParamater<'a>>
+#[derive(Debug,Eq,PartialEq)]
+pub enum Response{
+    OK,
+    Error,
+    Standard{
+        key: String,
+        parameter: Vec<String>
+    },
+    KVs(BTreeMap<String,String>),
+    Genric (String),
 }
 
-impl<'a> Command<'a>{
+pub struct Command {
+    pub base: &'static str,
+    pub key: &'static str,
+    pub parameters:  Vec<CommandParamater>
+}
+
+impl Command{
     pub fn as_test(&self)->Box<String>{
         Box::new(String::from(format!("{:}=?",self.base)))
     }
@@ -21,11 +39,11 @@ impl<'a> Command<'a>{
         Box::new(String::from(format!("{:}?",self.base)))
     }
     pub fn as_write(&self)->Box<String>{
-        let paramStr = self.parameters.iter().map(|e|match e{
-            CommandParamater::literal(l)=>format!(r#""{:}""#,l),
-            CommandParamater::numerical(d)=>format!(r#"{:}"#,d),
+        let param_str = self.parameters.iter().map(|e|match e{
+            CommandParamater::Literal(l)=>format!(r#""{:}""#,l),
+            CommandParamater::Numerical(d)=>format!(r#"{:}"#,d),
         }).collect::<Vec<String>>().join(",");
-        Box::new(String::from(format!("{:}={:}",self.base,paramStr)))
+        Box::new(String::from(format!("{:}={:}",self.base,param_str)))
     }
     pub fn as_exec(&self)->Box<String>{
         Box::new(String::from(format!("{:}",self.base)))
@@ -36,8 +54,9 @@ impl<'a> Command<'a>{
 mod test{
     use super::{Command,CommandParamater};
 
-    fn  getCommand<'a>()->Command<'a>{
+    fn  getCommand()->Command{
         Command{
+            key:"QATWAKEUP",
             base:"AT+QATWAKEUP",
             parameters: vec![
                 CommandParamater::numerical(1)
@@ -68,7 +87,7 @@ mod test{
         let mut c = getCommand();
         assert_eq!(c.as_write().as_str(),"AT+QATWAKEUP=1");
         c.parameters.push(
-            CommandParamater::literal("foo")
+            CommandParamater::literal("foo".to_string())
         );
         assert_eq!(c.as_write().as_str(),r#"AT+QATWAKEUP=1,"foo""#);
     }

@@ -7,14 +7,14 @@ pub mod publish;
 
 bitflags!{
     pub struct MQTTFlags: u8{
-        const will = (1<<0);
-        const will_retain =  (1<<1);
-        const timeout_notice = (1<<2);
-        const clean_session= (1<<3);
-        const keep_alive = (1<<4);
-        const send_format = (1<<5);
-        const recv_format = (1<<6);
-        const echo_mode= (1<<7);
+        const WILL = (1<<0);
+        const WILL_RETAIN =  (1<<1);
+        const TIMEOUT_NOTICE = (1<<2);
+        const CLEAN_SESSION= (1<<3);
+        const KEEP_ALIVE = (1<<4);
+        const SEND_FORMAT = (1<<5);
+        const RECV_FORMAT = (1<<6);
+        const ECHO_MODE= (1<<7);
     }
 }
 

@@ -1,8 +1,6 @@
-use super::{MQTT,MQTTFlags};
-use crate::cffi::import;
+use super::{MQTT};
 use alloc::string::String;
 use alloc::boxed::Box;
-use alloc::fmt::format;
 
 impl MQTT {
     pub fn set_open(&self)->Box<String>{
@@ -11,13 +9,13 @@ impl MQTT {
     pub fn set_close(&self)->Box<String>{
         Box::new(format!(r#"AT+QMTCLOSE={:}"#,self.session))
     }
-    pub fn set_conn(&self,cID:&str,username:&str,password:&str)->Box<String>{
+    pub fn set_conn(&self,c_id:&str,username:&str,password:&str)->Box<String>{
         if username.len()>0{
             Box::new(format!(r#"AT+QMTCONN={:},"{:}","{:}","{:}""#
-            ,self.session,cID,username,password))
+            ,self.session,c_id,username,password))
         } else{
             Box::new(format!(r#"AT+QMTCONN={:},"{:}""#
-            ,self.session,cID))
+            ,self.session,c_id))
         }
     }
     pub fn set_disconn(&self)->Box<String>{
@@ -50,23 +48,23 @@ mod tests{
 
     #[test]
     pub fn test_set_open(){
-        let mut a = getMqttObj();
+        let a = getMqttObj();
         assert_eq!(a.set_open().as_str(),r#"AT+QMTOPEN=3,"foo.bar.com",12345"#);
     }
     #[test]
     pub fn test_set_close(){
-        let mut a = getMqttObj();
+        let a = getMqttObj();
         assert_eq!(a.set_close().as_str(),r#"AT+QMTCLOSE=3"#);
     }
     #[test]
     pub fn test_set_conn(){
-        let mut a = getMqttObj();
+        let a = getMqttObj();
         assert_eq!(a.set_conn("fooo","1234","4567").as_str(),r#"AT+QMTCONN=3,"fooo","1234","4567""#);
         assert_eq!(a.set_conn("fooo","","").as_str(),r#"AT+QMTCONN=3,"fooo""#);
     }
     #[test]
     pub fn test_set_disconn(){
-        let mut a = getMqttObj();
+        let a = getMqttObj();
         assert_eq!(a.set_disconn().as_str(),r#"AT+QMTDISC=3"#);
     }
 }

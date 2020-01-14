@@ -1,112 +1,113 @@
 use super::{MQTT,MQTTFlags};
-use crate::cffi::import;
 use crate::bc26::cmd::{CommandParamater,Command};
-use core::borrow::Borrow;
-use alloc::string::String;
+use alloc::string::{String,ToString};
 use alloc::boxed::Box;
-use alloc::fmt::format;
+use alloc::str;
 
-static BaseCommand:&str = "AT+QMTCFG";
+
+
+static BASE_COMMAND:&str= "AT+QMTCFG";
 
 impl MQTT {
-    fn getCfgBaseCommand<'a>(&'a self,tag:&'a str)->Command<'a>{
+    fn get_cfg_base_command(& self,tag:&str)->Command{
         Command{
-            base:BaseCommand,
+            key:"QMTCFG",
+            base:BASE_COMMAND,
             parameters: vec![
-                CommandParamater::literal(tag),
-                CommandParamater::numerical(self.session as u32)
+                CommandParamater::Literal(tag.to_string()),
+                CommandParamater::Numerical(self.session as u32)
             ]
         }
     }
 
     pub fn set_will(&self)->Box<String>{
-        let mut command = self.getCfgBaseCommand("WILL");
-        if (self.flag & MQTTFlags::will).bits()!=0{
+        let mut command = self.get_cfg_base_command("WILL");
+        if (self.flag & MQTTFlags::WILL).bits()!=0{
             command.parameters.extend(vec![
-                CommandParamater::numerical(1),//will_fg
-                CommandParamater::numerical(self.will_qos as u32)//qos
+                CommandParamater::Numerical(1),//will_fg
+                CommandParamater::Numerical(self.will_qos as u32)//qos
             ].into_iter());
-            if (self.flag & MQTTFlags::will_retain) == MQTTFlags::will_retain{
+            if (self.flag & MQTTFlags::WILL_RETAIN) == MQTTFlags::WILL_RETAIN{
                 command.parameters.push(
-                    CommandParamater::numerical(1) //reatin
+                    CommandParamater::Numerical(1) //reatin
                 );
             } else{
                 command.parameters.push(
-                    CommandParamater::numerical(0) //retain
+                    CommandParamater::Numerical(0) //retain
                 );
             }
             command.parameters.extend(vec![
-                CommandParamater::literal(self.will_topic),
-                CommandParamater::literal(self.will_msg)
+                CommandParamater::Literal(self.will_topic.to_string()),
+                CommandParamater::Literal(self.will_msg.to_string())
             ].into_iter());
         }
         command.as_write()
     }
     pub fn set_timeout(&self)->Box<String>{
-        let mut command = self.getCfgBaseCommand("TIMEOUT");
+        let mut command = self.get_cfg_base_command("TIMEOUT");
         command.parameters.extend(vec![
-            CommandParamater::numerical(self.pkg_timeout as u32),
-            CommandParamater::numerical(self.retry_times as u32)
+            CommandParamater::Numerical(self.pkg_timeout as u32),
+            CommandParamater::Numerical(self.retry_times as u32)
         ].into_iter());
-        if (self.flag&MQTTFlags::timeout_notice).bits()!=0{
+        if (self.flag&MQTTFlags::TIMEOUT_NOTICE).bits()!=0{
             command.parameters.push(
-                CommandParamater::numerical(1));
+                CommandParamater::Numerical(1));
         } else{
             command.parameters.push(
-                CommandParamater::numerical(0));
+                CommandParamater::Numerical(0));
         }
         command.as_write()
     }
 
     pub fn set_session(&self)->Box<String>{
-        let mut command = self.getCfgBaseCommand("SESSION");
-        if (self.flag & MQTTFlags::clean_session).bits()!=0{
+        let mut command = self.get_cfg_base_command("SESSION");
+        if (self.flag & MQTTFlags::CLEAN_SESSION).bits()!=0{
             command.parameters.push(
-                CommandParamater::numerical(1)
+                CommandParamater::Numerical(1)
             )
         }
         command.as_write()
     }
 
     pub fn set_keepalive(&self)->Box<String>{
-        let mut command = self.getCfgBaseCommand("KEEPALIVE");
+        let mut command = self.get_cfg_base_command("KEEPALIVE");
         command.parameters.push(
-            CommandParamater::numerical(self.keep_alive as u32)
+            CommandParamater::Numerical(self.keep_alive as u32)
         );
         command.as_write()
     }
 
     pub fn set_version(&self)->Box<String>{
-        let mut command = self.getCfgBaseCommand("VERSION");
+        let mut command = self.get_cfg_base_command("VERSION");
         command.parameters.push(
-            CommandParamater::numerical(self.version as u32)
+            CommandParamater::Numerical(self.version as u32)
         );
         command.as_write()
     }
 
     pub fn set_dataformat(&self)->Box<String>{
-        let mut command = self.getCfgBaseCommand("dataformat");
+        let mut command = self.get_cfg_base_command("dataformat");
 
-        if (self.flag&MQTTFlags::send_format).bits()!=0{
-            command.parameters.push( CommandParamater::numerical(1))
+        if (self.flag&MQTTFlags::SEND_FORMAT).bits()!=0{
+            command.parameters.push( CommandParamater::Numerical(1))
         } else{
-            command.parameters.push( CommandParamater::numerical(0))
+            command.parameters.push( CommandParamater::Numerical(0))
         }
 
-        if (self.flag&MQTTFlags::recv_format).bits()!=0{
-            command.parameters.push( CommandParamater::numerical(1))
+        if (self.flag&MQTTFlags::RECV_FORMAT).bits()!=0{
+            command.parameters.push( CommandParamater::Numerical(1))
         } else{
-            command.parameters.push( CommandParamater::numerical(0))
+            command.parameters.push( CommandParamater::Numerical(0))
         }
         command.as_write()
     }
 
     pub fn set_echomode(&self)->Box<String>{
-        let mut command = self.getCfgBaseCommand("echomode");
-        if (self.flag&MQTTFlags::echo_mode).bits()!=0{
-            command.parameters.push( CommandParamater::numerical(1))
+        let mut command = self.get_cfg_base_command("echomode");
+        if (self.flag&MQTTFlags::ECHO_MODE).bits()!=0{
+            command.parameters.push( CommandParamater::Numerical(1))
         } else{
-            command.parameters.push( CommandParamater::numerical(0))
+            command.parameters.push( CommandParamater::Numerical(0))
         }
         command.as_write()
     }
@@ -144,7 +145,7 @@ mod tests{
     }
     #[test]
     pub fn test_set_timeout(){
-        let mut a = getMqttObj();
+        let a = getMqttObj();
         assert_eq!(a.set_timeout().as_str(),r#"AT+QMTCFG="TIMEOUT",3,7,5,0"#);
     }
 
