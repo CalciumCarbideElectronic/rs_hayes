@@ -20,12 +20,14 @@ enum BC26State {
     WaitForProcess,
 }
 
+#[derive(Debug)]
 pub struct BC26{
     state: BC26State,
     in_flight: Option< Box<Command> >,
     response_stack: Vec<Response>,
     urc_stack:Vec<Response>
 }
+
 
 impl BC26 {
     pub fn new() -> BC26 {

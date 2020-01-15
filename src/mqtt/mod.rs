@@ -1,5 +1,6 @@
 mod opt;
 use bitflags::bitflags;
+use crate::bc26::BC26;
 
 pub mod cfg;
 pub mod connect;
@@ -20,6 +21,7 @@ bitflags!{
 
 #[derive(Debug)]
 pub struct MQTT{
+    BC26:Option<&'static BC26>,
     session: u8,
     host: &'static str,
     port: u16,
@@ -36,6 +38,7 @@ pub struct MQTT{
 impl Default for MQTT{
     fn default()->MQTT{
         MQTT{
+            BC26:None ,
             session: 0,
             host: "",
             port: 0,

@@ -12,13 +12,11 @@ use super::allocator::ALLOCATOR;
 
 
 #[no_mangle]
-pub extern fn construct(begin:*mut u8, size: usize) -> *mut BC26 {
+pub extern fn construct(begin:*mut u8, size: usize) {
     unsafe {
         let start = begin as usize;
         #[cfg(not(test))]
         ALLOCATOR.init(start,size) ;
-        let mut obj: BC26 = BC26::new();
-        &mut obj as *mut BC26
     }
 }
 
