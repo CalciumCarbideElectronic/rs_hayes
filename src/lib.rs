@@ -1,4 +1,5 @@
 #![cfg_attr(not(test), no_std)]
+#![feature(vec_into_raw_parts)]
 #![feature(const_raw_ptr_deref)]
 #![feature(lang_items)]
 #![feature(alloc_error_handler)]

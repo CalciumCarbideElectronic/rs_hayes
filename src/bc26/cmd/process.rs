@@ -3,11 +3,13 @@ use super::Response;
 use alloc::vec::Vec;
 
 
+#[derive(Debug,PartialEq,Clone)]
 pub enum CommandState{
     Issued,
     Terminated
 }
 
+#[derive(Debug,Clone)]
 pub struct LiveCommand{
     pub cmd : Command,
     pub state: CommandState,
@@ -15,7 +17,14 @@ pub struct LiveCommand{
 }
 
 impl LiveCommand{
-    fn feed(&mut self,line_resp: &Response){
+    pub fn init(cmd:Command )->LiveCommand{
+        LiveCommand{
+        cmd: cmd,
+        state:CommandState::Issued,
+        response:vec![]
+        }
+    }
+    pub fn feed(&mut self,line_resp: Response){
         match line_resp.clone(){
             Response::Error=>{
                 self.response.push(Response::Error);
