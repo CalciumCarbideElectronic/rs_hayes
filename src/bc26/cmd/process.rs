@@ -27,12 +27,12 @@ impl LiveCommand{
                 }
             },
             Response::Standard(st) =>{
-                self.response.push(*line_resp);
+                self.response.push(line_resp.clone());
                 if self.cmd.asyncResp{
                     self.state= CommandState::Terminated;
                 } },
             _=>{
-                self.response.push(*line_resp);
+                self.response.push(line_resp.clone());
             }
         }
     }

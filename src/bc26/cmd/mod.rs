@@ -42,7 +42,7 @@ pub enum CommandForm{
 #[derive(Clone,Debug)]
 pub struct Command {
     pub key: &'static str,
-    pub parameters: Option<Vec<CommandParamater>>,
+    pub parameters:Vec<CommandParamater>,
     pub asyncResp: bool,
     pub form : CommandForm
 }
@@ -56,13 +56,11 @@ impl Command{
             CommandForm::ExtRead=>format!("AT+{:}?",self.key),
             CommandForm::ExtTest=>format!("AT+{:}=?",self.key),
             CommandForm::ExtWrite=>format!("AT+{:}={:}",self.key,
-                match self.parameters{
-                    Some(para)=> para.iter().map(|e|match e{
-                    CommandParamater::Literal(l)=>format!(r#""{:}""#,l),
-                    CommandParamater::Numerical(d)=>format!(r#"{:}"#,d),
-                    }).collect::<Vec<String>>().join(","),
-                    None=>String::new()
-                })
+                    self.parameters.iter().map(|e|match e{
+                        CommandParamater::Literal(l)=>format!(r#""{:}""#,l),
+                        CommandParamater::Numerical(d)=>format!(r#"{:}"#,d),
+                        }).collect::<Vec<String>>().join(","),
+                )
         }
     }
 }
@@ -75,7 +73,7 @@ mod test{
         Command{
             asyncResp:false,
             key:"QATWAKEUP",
-            form: CommandForm:ExtExec,
+            form: CommandForm::ExtRead,
             parameters: vec![
                 CommandParamater::Numerical(1)
             ]

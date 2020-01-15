@@ -1,5 +1,5 @@
 use super::{MQTT,MQTTFlags};
-use crate::bc26::cmd::{CommandParamater,Command};
+use crate::bc26::cmd::{CommandParamater,Command,CommandForm};
 use alloc::string::{String,ToString};
 use alloc::boxed::Box;
 use alloc::str;
@@ -11,16 +11,17 @@ static BASE_COMMAND:&str= "AT+QMTCFG";
 impl MQTT {
     fn get_cfg_base_command(& self,tag:&str)->Command{
         Command{
+            asyncResp:false,
             key:"QMTCFG",
-            base:BASE_COMMAND,
-            parameters: vec![
+            form:CommandForm::ExtWrite,
+            parameters:vec![
                 CommandParamater::Literal(tag.to_string()),
                 CommandParamater::Numerical(self.session as u32)
             ]
         }
     }
 
-    pub fn set_will(&self)->Box<String>{
+    pub fn set_will(&self)->String{
         let mut command = self.get_cfg_base_command("WILL");
         if (self.flag & MQTTFlags::WILL).bits()!=0{
             command.parameters.extend(vec![
@@ -41,9 +42,9 @@ impl MQTT {
                 CommandParamater::Literal(self.will_msg.to_string())
             ].into_iter());
         }
-        command.as_write()
+        command.construct()
     }
-    pub fn set_timeout(&self)->Box<String>{
+    pub fn set_timeout(&self)->String{
         let mut command = self.get_cfg_base_command("TIMEOUT");
         command.parameters.extend(vec![
             CommandParamater::Numerical(self.pkg_timeout as u32),
@@ -56,36 +57,36 @@ impl MQTT {
             command.parameters.push(
                 CommandParamater::Numerical(0));
         }
-        command.as_write()
+        command.construct()
     }
 
-    pub fn set_session(&self)->Box<String>{
+    pub fn set_session(&self)->String{
         let mut command = self.get_cfg_base_command("SESSION");
         if (self.flag & MQTTFlags::CLEAN_SESSION).bits()!=0{
             command.parameters.push(
                 CommandParamater::Numerical(1)
             )
         }
-        command.as_write()
+        command.construct()
     }
 
-    pub fn set_keepalive(&self)->Box<String>{
+    pub fn set_keepalive(&self)->String{
         let mut command = self.get_cfg_base_command("KEEPALIVE");
         command.parameters.push(
             CommandParamater::Numerical(self.keep_alive as u32)
         );
-        command.as_write()
+        command.construct()
     }
 
-    pub fn set_version(&self)->Box<String>{
+    pub fn set_version(&self)->String{
         let mut command = self.get_cfg_base_command("VERSION");
         command.parameters.push(
             CommandParamater::Numerical(self.version as u32)
         );
-        command.as_write()
+        command.construct()
     }
 
-    pub fn set_dataformat(&self)->Box<String>{
+    pub fn set_dataformat(&self)->String{
         let mut command = self.get_cfg_base_command("dataformat");
 
         if (self.flag&MQTTFlags::SEND_FORMAT).bits()!=0{
@@ -99,17 +100,17 @@ impl MQTT {
         } else{
             command.parameters.push( CommandParamater::Numerical(0))
         }
-        command.as_write()
+        command.construct()
     }
 
-    pub fn set_echomode(&self)->Box<String>{
+    pub fn set_echomode(&self)->String{
         let mut command = self.get_cfg_base_command("echomode");
         if (self.flag&MQTTFlags::ECHO_MODE).bits()!=0{
             command.parameters.push( CommandParamater::Numerical(1))
         } else{
             command.parameters.push( CommandParamater::Numerical(0))
         }
-        command.as_write()
+        command.construct()
     }
 
 }

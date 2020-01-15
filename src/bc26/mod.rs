@@ -81,18 +81,19 @@ impl BC26 {
 
 #[cfg(test)]
 mod test{
-    use super::{BC26State,BC26,Response,cmd::{Standard,CommandParamater,Command}};
+    use super::{BC26State,BC26,Response,cmd::{Standard,CommandParamater,Command,CommandForm}};
     #[test]
     fn test_normal_process(){
         let mut a = BC26::new();
         let b = Command{
             key:"CESQ",
-            base:"AT+CESQ",
+            asyncResp:false,
+            form:CommandForm::ExtWrite,
             parameters: vec![
                 CommandParamater::Numerical(1)
             ]
         };
-        let raw = b.as_write();
+        let raw = b.construct();
 
         a.send_cmd(b,&raw);
     
