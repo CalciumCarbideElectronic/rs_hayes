@@ -1,4 +1,5 @@
 pub mod parse;
+pub mod process;
 use alloc::{
     vec::Vec,
     boxed::Box,
@@ -30,39 +31,51 @@ pub enum Response{
 }
 
 #[derive(Clone,Debug)]
-pub struct Command {
-    pub base: &'static str,
-    pub key: &'static str,
-    pub parameters:  Vec<CommandParamater>
+pub enum CommandForm{
+    AT,
+    ExtTest,
+    ExtWrite,
+    ExtRead,
+    ExtExec
 }
 
+#[derive(Clone,Debug)]
+pub struct Command {
+    pub key: &'static str,
+    pub parameters: Option<Vec<CommandParamater>>,
+    pub asyncResp: bool,
+    pub form : CommandForm
+}
+
+
 impl Command{
-    pub fn as_test(&self)->Box<String>{
-        Box::new(String::from(format!("{:}=?",self.base)))
-    }
-    pub fn as_read(&self)->Box<String>{
-        Box::new(String::from(format!("{:}?",self.base)))
-    }
-    pub fn as_write(&self)->Box<String>{
-        let param_str = self.parameters.iter().map(|e|match e{
-            CommandParamater::Literal(l)=>format!(r#""{:}""#,l),
-            CommandParamater::Numerical(d)=>format!(r#"{:}"#,d),
-        }).collect::<Vec<String>>().join(",");
-        Box::new(String::from(format!("{:}={:}",self.base,param_str)))
-    }
-    pub fn as_exec(&self)->Box<String>{
-        Box::new(String::from(format!("{:}",self.base)))
+    pub fn construct(&self)->String{
+        match self.form{
+            CommandForm::AT=> format!("AT{:}",self.key),
+            CommandForm::ExtExec=>format!("AT+{:}",self.key),
+            CommandForm::ExtRead=>format!("AT+{:}?",self.key),
+            CommandForm::ExtTest=>format!("AT+{:}=?",self.key),
+            CommandForm::ExtWrite=>format!("AT+{:}={:}",self.key,
+                match self.parameters{
+                    Some(para)=> para.iter().map(|e|match e{
+                    CommandParamater::Literal(l)=>format!(r#""{:}""#,l),
+                    CommandParamater::Numerical(d)=>format!(r#"{:}"#,d),
+                    }).collect::<Vec<String>>().join(","),
+                    None=>String::new()
+                })
+        }
     }
 }
 
 #[cfg(test)]
 mod test{
-    use super::{Command,CommandParamater};
+    use super::{Command,CommandParamater,CommandForm};
 
-    fn  getCommand()->Command{
+    fn  getSyncCommand()->Command{
         Command{
+            asyncResp:false,
             key:"QATWAKEUP",
-            base:"AT+QATWAKEUP",
+            form: CommandForm:ExtExec,
             parameters: vec![
                 CommandParamater::Numerical(1)
             ]
@@ -71,30 +84,35 @@ mod test{
 
     #[test]
     fn test_as_test(){
-        let c = getCommand();
-        assert_eq!(c.as_test().as_str(),"AT+QATWAKEUP=?")
+        let mut c = getSyncCommand();
+        c.form=CommandForm::ExtTest;
+        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP=?")
     }
 
     #[test]
     fn test_as_read(){
-        let c = getCommand();
-        assert_eq!(c.as_read().as_str(),"AT+QATWAKEUP?")
+        let mut c = getSyncCommand();
+        c.form=CommandForm::ExtRead;
+        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP?")
     }
 
     #[test]
     fn test_as_exec(){
-        let c = getCommand();
-        assert_eq!(c.as_exec().as_str(),"AT+QATWAKEUP")
+        let mut c = getSyncCommand();
+        c.form=CommandForm::ExtExec;
+        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP")
     }
 
     #[test]
     fn test_as_write(){
-        let mut c = getCommand();
-        assert_eq!(c.as_write().as_str(),"AT+QATWAKEUP=1");
+        let mut c = getSyncCommand();
+        c.form=CommandForm::ExtWrite;
+
+        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP=1");
         c.parameters.push(
             CommandParamater::Literal("foo".to_string())
         );
-        assert_eq!(c.as_write().as_str(),r#"AT+QATWAKEUP=1,"foo""#);
+        assert_eq!(c.construct().as_str(),r#"AT+QATWAKEUP=1,"foo""#);
     }
 }
 

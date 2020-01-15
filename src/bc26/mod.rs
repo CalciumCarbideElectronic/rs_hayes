@@ -25,7 +25,7 @@ pub struct BC26{
     state: BC26State,
     in_flight: Option< Box<Command> >,
     response_stack: Vec<Response>,
-    urc_stack:Vec<Response>
+    urc_stack:Vec<Response>,
 }
 
 
@@ -74,6 +74,8 @@ impl BC26 {
         let e = self.response_stack.clone();
         self.response_stack.clear();
         e
+    }
+    pub fn lock(&mut self,cmd:Command){
     }
 }
 
