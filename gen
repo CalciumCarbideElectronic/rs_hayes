@@ -1,2 +1,2 @@
-RUSTFLAGS="" cargo build --target thumbv7em-none-eabihf 
+RUSTFLAGS="" cargo build --target thumbv7em-none-eabihf  --release
 cbindgen -q --config cbindgen.toml --crate BC26 --output BC26.h
