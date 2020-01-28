@@ -1,61 +1,43 @@
+use crate::bc26::cmd::{process::LiveCommand, Command, CommandForm, CommandParamater};
 use crate::bc26::BC26;
-use crate::cffi::cstr::{CStr};
-use crate::cffi::import::{uart_send};
-
-use core::str::from_utf8;
-use alloc::string::String;
 use alloc::boxed::Box;
+use alloc::string::String;
+use core::mem::transmute;
 
 #[cfg(not(test))]
 use super::allocator::ALLOCATOR;
 
-
-
 #[no_mangle]
-pub extern fn construct(begin:*mut u8, size: usize) {
+pub extern "C" fn construct(begin: *mut u8, size: usize) -> *mut BC26 {
     unsafe {
         let start = begin as usize;
         #[cfg(not(test))]
-        ALLOCATOR.init(start,size) ;
+        ALLOCATOR.init(start, size);
     }
+    return unsafe { transmute(Box::new(BC26::new())) };
 }
 
-#[no_mangle] 
-pub extern fn heap_free(ptr: * mut u8) {
-    unsafe{
-
-    let _boxed = Box::from_raw(ptr as * mut String);
+#[no_mangle]
+pub extern "C" fn feed(ptr: *mut BC26, begin: *mut u8, size: usize) {
+    unsafe {
+        let mut bc26 = &mut *ptr;
+        let line = String::from_raw_parts(begin, size, size);
+        bc26.feed(line);
     };
- }
-
-#[no_mangle] 
-pub extern fn heap_test() -> * const u8{
-    // let boxed: Box<String> = Box::new(String::from( format!("hello worxd {:x} 123456789", 123)));
-
-    // let hello1 = "Hello, World!";
-    // let hello2 =  String::from("again, hello");
-    let hello3 =  Box::new(String::from("again,hello"));
-
-    // let dummy  =  String::from("dummy,dummy,dummy");
-    // unsafe {hello1.as_ptr()}
-    // unsafe {hello2.as_ptr()}
-    // unsafe {hello2.as_ptr()}
-    // unsafe {hello3.as_ptr()}
-
-    Box::into_raw(hello3) as *const u8
- }
-
-#[no_mangle]
-pub extern fn print_pointer(tag: *const u8, p: * const u8) {
-    unsafe{
-        let tag = CStr::from_ptr(tag);
-        let s =  String::from(format!("{:}:{:p}\n",tag.to_str_unsafe(),p));
-        uart_send(s.as_bytes().as_ptr(),s.len());
-    }
 }
 
 #[no_mangle]
-pub extern fn nothing() {}
+pub extern "C" fn AT(ptr: *mut BC26) {
+    let mut bc26 = unsafe { &mut *ptr };
+    let b = Command {
+        key: "CESQ",
+        asyncResp: false,
+        form: CommandForm::ExtWrite,
+        parameters: vec![CommandParamater::Numerical(1)],
+    };
+    let live_cmd = LiveCommand::init(b);
+    bc26.send_cmd(live_cmd);
+}
 
 #[cfg(test)]
 mod tests {
