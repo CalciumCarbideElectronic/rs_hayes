@@ -1,5 +1,6 @@
-pub enum BC26Status{
+#[repr(C)]
+pub enum BC26Status {
     Ok,
-    ErrStateMismatch
-
+    ErrStateMismatch,
+    Timeout,
 }
