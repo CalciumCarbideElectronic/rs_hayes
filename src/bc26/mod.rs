@@ -11,7 +11,8 @@ use core::marker::Copy;
 use core::result::Result;
 
 #[derive(Eq, PartialEq, Debug)]
-enum BC26State {
+#[repr(C)]
+pub enum BC26State {
     IDLE,
     WaitForResponse,
     WaitForProcess,
@@ -19,8 +20,8 @@ enum BC26State {
 
 #[derive(Debug)]
 pub struct BC26 {
-    in_flight: VecDeque<LiveCommand>,
-    response_stack: Vec<LiveCommand>,
+    async_in_flight: Option<LiveCommand>,
+    in_flight: Option<LiveCommand>,
     urc_stack: Vec<Response>,
     _lock: bool,
 }
@@ -28,8 +29,8 @@ pub struct BC26 {
 impl BC26 {
     pub fn new() -> BC26 {
         BC26 {
-            in_flight: VecDeque::new(),
-            response_stack: vec![],
+            async_in_flight: None,
+            in_flight: None,
             urc_stack: vec![],
             _lock: false,
         }
@@ -46,34 +47,56 @@ impl BC26 {
     fn isLocked(&self) -> bool {
         return self._lock;
     }
+
     pub fn send_cmd(&mut self, live_cmd: LiveCommand) -> Result<BC26Status, BC26Status> {
         let raw = live_cmd.cmd.construct();
+
+        if !live_cmd.cmd.asyncResp {
+            self.lock();
+        }
         unsafe {
             let (p, len, _cap) = raw.into_raw_parts();
             uart_send(p, len);
         }
-        self.lock();
-        self.in_flight.push_back(live_cmd);
+        self.in_flight = Some(live_cmd);
         Ok(BC26Status::Ok)
     }
     pub fn feed(&mut self, line: String) -> Result<BC26Status, BC26Status> {
-        match self.in_flight.back_mut() {
+        let mut parsed_resp = Command::parse_line(line.as_str());
+        //Handle URC Here
+        match &mut self.in_flight {
             Some(cmd) => {
-                let mut parsed_resp = Command::parse_line(line.as_str());
-                if cmd.state == CommandState::Terminated {
-                    let cmd = self.in_flight.pop_back().unwrap();
-                    self.response_stack.push(cmd)
-                }
+                cmd.feed(parsed_resp);
                 return Ok(BC26Status::Ok);
             }
-            None => Err(BC26Status::ErrStateMismatch),
+            None => match &mut self.async_in_flight {
+                Some(async_cmd) => {
+                    async_cmd.feed(parsed_resp);
+                    if async_cmd.state == CommandState::Terminated {
+                        return Ok(BC26Status::Ok);
+                    }
+                    return Ok(BC26Status::Ok);
+                }
+                None => Err(BC26Status::ErrStateMismatch),
+            },
         }
     }
 
-    pub fn process(&mut self) -> Vec<LiveCommand> {
-        let e = self.response_stack.clone();
-        self.response_stack.clear();
-        e
+    pub fn process(&mut self) -> Option<LiveCommand> {
+        let m = match &self.in_flight {
+            Some(cmd) => {
+                if cmd.state == CommandState::Terminated {
+                    return Some(cmd.clone());
+                } else {
+                    return None;
+                }
+            }
+            None => None,
+        };
+        if m.is_some() {
+            self.unlock();
+        }
+        return m;
     }
 }
 
@@ -98,10 +121,9 @@ mod test {
         a.feed("+CESQ: 36,99,255,255,12,53".to_string());
         a.feed("OK".to_string());
         let resp = a.process();
-        assert_eq!(resp.len(), 1);
-        assert_eq!(resp[0].response.len(), 1);
+        assert_eq!(resp.is_some(), true);
         assert_eq!(
-            resp[0].response[0],
+            resp.unwrap().response[0],
             Response::Standard(Standard {
                 key: "CESQ".to_string(),
                 parameter: vec!["36", "99", "255", "255", "12", "53"]
