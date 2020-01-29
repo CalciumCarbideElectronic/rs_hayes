@@ -51,11 +51,11 @@ pub struct Command {
 impl Command{
     pub fn construct(&self)->String{
         match self.form{
-            CommandForm::AT=> format!("AT{:}",self.key),
-            CommandForm::ExtExec=>format!("AT+{:}",self.key),
-            CommandForm::ExtRead=>format!("AT+{:}?",self.key),
-            CommandForm::ExtTest=>format!("AT+{:}=?",self.key),
-            CommandForm::ExtWrite=>format!("AT+{:}={:}",self.key,
+            CommandForm::AT=> format!("AT{:}\r\n",self.key),
+            CommandForm::ExtExec=>format!("AT+{:}\r\n",self.key),
+            CommandForm::ExtRead=>format!("AT+{:}?\r\n",self.key),
+            CommandForm::ExtTest=>format!("AT+{:}=?\r\n",self.key),
+            CommandForm::ExtWrite=>format!("AT+{:}={:}\r\n",self.key,
                     self.parameters.iter().map(|e|match e{
                         CommandParamater::Literal(l)=>format!(r#""{:}""#,l),
                         CommandParamater::Numerical(d)=>format!(r#"{:}"#,d),
