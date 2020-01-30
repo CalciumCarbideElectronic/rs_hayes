@@ -1,18 +1,21 @@
-use alloc_cortex_m::CortexMHeap;
 use crate::cffi::import;
+use crate::cffi::import::DebugS;
+use alloc_cortex_m::CortexMHeap;
+mod freertos;
 
+// #[cfg(not(test))]
+// #[global_allocator]
+// pub static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
 #[cfg(not(test))]
 #[global_allocator]
-pub static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
+pub static ALLOCATOR: freertos::FreeRTOSAllocator = freertos::FreeRTOSAllocator {};
 
 #[cfg(not(test))]
 #[alloc_error_handler]
 fn my_example_handler(layout: core::alloc::Layout) -> ! {
-    let s =  alloc::string::String::from(
-        format!("memory allocation of {} bytes failed", layout.size())
-    );
-    unsafe{
-        import::uart_send(s.as_bytes().as_ptr(),s.len());
+    let s = format!("memory allocation of {} bytes failed", layout.size());
+    unsafe {
+        DebugS(s);
     }
     panic!("memory allocation of {} bytes failed", layout.size())
 }

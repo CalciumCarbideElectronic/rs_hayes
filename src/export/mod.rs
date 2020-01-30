@@ -17,8 +17,8 @@ use super::allocator::ALLOCATOR;
 pub extern "C" fn construct(begin: *mut u8, size: usize) -> *mut BC26 {
     unsafe {
         let start = begin as usize;
-        #[cfg(not(test))]
-        ALLOCATOR.init(start, size);
+        // #[cfg(not(test))]
+        //ALLOCATOR.init(start, size);
     }
     return unsafe { transmute(Box::new(BC26::new())) };
 }
