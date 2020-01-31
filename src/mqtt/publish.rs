@@ -2,7 +2,7 @@ use super::{MQTTFlags, MQTT};
 use alloc::boxed::Box;
 use alloc::string::String;
 
-impl<'a> MQTT<'a> {
+impl MQTT {
     pub fn cmd_publish(
         &self,
         msg_id: u16,

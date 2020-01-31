@@ -2,7 +2,7 @@ use super::MQTT;
 use alloc::boxed::Box;
 use alloc::string::String;
 
-impl<'a> MQTT<'a> {
+impl MQTT {
     pub fn set_open(&self) -> Box<String> {
         Box::new(format!(
             r#"AT+QMTOPEN={:},"{:}",{:}"#,

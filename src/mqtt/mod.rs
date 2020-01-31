@@ -1,5 +1,6 @@
 mod opt;
 use crate::bc26::BC26;
+use alloc::boxed::Box;
 use bitflags::bitflags;
 
 pub mod cfg;
@@ -20,8 +21,8 @@ bitflags! {
 }
 
 #[derive(Debug)]
-pub struct MQTT<'a> {
-    BC26: Option<&'a BC26>,
+pub struct MQTT {
+    BC26: Option<Box<BC26>>,
     session: u8,
     host: &'static str,
     port: u16,
@@ -35,8 +36,8 @@ pub struct MQTT<'a> {
     flag: MQTTFlags,
 }
 
-impl<'a> Default for MQTT<'a> {
-    fn default() -> MQTT<'a> {
+impl Default for MQTT {
+    fn default() -> MQTT {
         MQTT {
             BC26: None,
             session: 0,
@@ -54,10 +55,10 @@ impl<'a> Default for MQTT<'a> {
     }
 }
 
-impl<'a> MQTT<'a> {
-    pub fn new(bc26: &'a BC26) -> MQTT {
+impl MQTT {
+    pub fn new(bc26: Box<BC26>) -> MQTT {
         return MQTT {
-            BC26:Some(bc26),
+            BC26: Some(bc26),
             session: 0,
             host: "foo.bar.com",
             port: 12345,

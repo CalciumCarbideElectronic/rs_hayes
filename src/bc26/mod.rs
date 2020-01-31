@@ -1,13 +1,15 @@
 pub mod cmd;
+pub mod ctl;
 use crate::cffi::import::uart_send;
 use crate::constant::BC26Status;
-use alloc::{boxed::Box, collections::vec_deque::VecDeque, string::String, vec::Vec};
+use crate::sysutil::poll_for_result;
+use alloc::{rc::Rc, string::String, vec::Vec};
 use cmd::{
     process::{CommandState, LiveCommand},
     Command, Response,
 };
+use core::cell::RefCell;
 use core::clone::Clone;
-use core::marker::Copy;
 use core::result::Result;
 
 #[derive(Eq, PartialEq, Debug)]
@@ -20,10 +22,9 @@ pub enum BC26State {
 
 #[derive(Debug)]
 pub struct BC26 {
-    async_in_flight: Option<LiveCommand>,
-    in_flight: Option<LiveCommand>,
+    async_in_flight: Option<Rc<RefCell<LiveCommand>>>,
+    in_flight: Option<Rc<RefCell<LiveCommand>>>,
     urc_stack: Vec<Response>,
-    _lock: bool,
 }
 
 impl BC26 {
@@ -32,47 +33,67 @@ impl BC26 {
             async_in_flight: None,
             in_flight: None,
             urc_stack: vec![],
-            _lock: false,
+        }
+    }
+
+    #[inline]
+    fn unlock_sync(&mut self) {
+        self.in_flight = None;
+    }
+    #[inline]
+    fn can_send_sync_cmd(&self) -> bool {
+        self.in_flight.is_none()
+    }
+    #[inline]
+    fn send_sync_cmd(
+        &mut self,
+        live_cmd: Rc<RefCell<LiveCommand>>,
+    ) -> Result<BC26Status, BC26Status> {
+        let e = live_cmd.clone();
+        let cmd = &e.borrow().cmd;
+        match self.send_cmd(cmd) {
+            Ok(o) => {
+                self.in_flight = Some(live_cmd);
+                Ok(o)
+            }
+            Err(e) => {
+                self.unlock_sync();
+                Err(e)
+            }
         }
     }
     #[inline]
-    fn lock(&mut self) {
-        self._lock = true;
-    }
-    #[inline]
-    fn unlock(&mut self) {
-        self._lock = false;
-    }
-    #[inline]
-    fn isLocked(&self) -> bool {
-        return self._lock;
+    fn send_async_cmd(
+        &mut self,
+        live_cmd: Rc<RefCell<LiveCommand>>,
+    ) -> Result<BC26Status, BC26Status> {
+        let e = live_cmd.clone();
+        let cmd = &e.borrow().cmd;
+        self.async_in_flight = Some(live_cmd);
+        self.send_cmd(cmd)
     }
 
-    pub fn send_cmd(&mut self, live_cmd: LiveCommand) -> Result<BC26Status, BC26Status> {
-        let raw = live_cmd.cmd.construct();
-
-        if !live_cmd.cmd.asyncResp {
-            self.lock();
-        }
+    pub fn send_cmd(&mut self, cmd: &Command) -> Result<BC26Status, BC26Status> {
         unsafe {
-            let (p, len, _cap) = raw.into_raw_parts();
+            let (p, len, cap) = cmd.construct().into_raw_parts();
             uart_send(p, len);
+            // this line for correct memory deallocation
+            let _rebuilt = String::from_raw_parts(p, len, cap);
         }
-        self.in_flight = Some(live_cmd);
         Ok(BC26Status::Ok)
     }
     pub fn feed(&mut self, line: String) -> Result<BC26Status, BC26Status> {
-        let mut parsed_resp = Command::parse_line(line.as_str());
+        let parsed_resp = Command::parse_line(line.as_str());
         //Handle URC Here
         match &mut self.in_flight {
             Some(cmd) => {
-                cmd.feed(parsed_resp);
+                cmd.borrow_mut().feed(parsed_resp);
                 return Ok(BC26Status::Ok);
             }
             None => match &mut self.async_in_flight {
                 Some(async_cmd) => {
-                    async_cmd.feed(parsed_resp);
-                    if async_cmd.state == CommandState::Terminated {
+                    async_cmd.borrow_mut().feed(parsed_resp);
+                    if async_cmd.borrow().state == CommandState::Terminated {
                         return Ok(BC26Status::Ok);
                     }
                     return Ok(BC26Status::Ok);
@@ -82,21 +103,52 @@ impl BC26 {
         }
     }
 
-    pub fn process(&mut self) -> Option<LiveCommand> {
-        let m = match &self.in_flight {
+    pub fn process(&mut self) -> bool {
+        let terminated: bool = match &self.in_flight {
             Some(cmd) => {
-                if cmd.state == CommandState::Terminated {
-                    return Some(cmd.clone());
+                if cmd.borrow().state == CommandState::Terminated {
+                    return true;
                 } else {
-                    return None;
+                    return false;
                 }
             }
-            None => None,
+            None => false,
         };
-        if m.is_some() {
-            self.unlock();
+
+        if terminated {
+            self.unlock_sync();
         }
-        return m;
+        return terminated;
+    }
+
+    pub fn poll_cmd(
+        &mut self,
+        live_cmd: Rc<RefCell<LiveCommand>>,
+        timeout: usize,
+    ) -> Result<BC26Status, BC26Status> {
+        let is_async = live_cmd.borrow().cmd.asyncResp;
+        if !is_async {
+            if !self.can_send_sync_cmd() {
+                return Err(BC26Status::ErrLocked);
+            }
+            if let Err(e) = self.send_sync_cmd(live_cmd) {
+                return Err(e);
+            }
+        } else {
+            if let Err(e) = self.send_async_cmd(live_cmd) {
+                return Err(e);
+            }
+        }
+        let res = match poll_for_result(2, timeout, || self.process()) {
+            true => Ok(BC26Status::Ok),
+            false => Err(BC26Status::Timeout),
+        };
+        if !is_async {
+            self.unlock_sync();
+        } else {
+            self.async_in_flight = None;
+        }
+        return res;
     }
 }
 

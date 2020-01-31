@@ -5,7 +5,7 @@ use alloc::string::{String, ToString};
 
 static BASE_COMMAND: &str = "AT+QMTCFG";
 
-impl<'a> MQTT<'a> {
+impl MQTT {
     fn get_cfg_base_command(&self, tag: &str) -> Command {
         Command {
             asyncResp: false,
