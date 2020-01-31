@@ -1,25 +1,14 @@
-use crate::bc26::cmd::{process::LiveCommand, Command, CommandForm, CommandParamater};
 use crate::bc26::BC26;
-use crate::cffi::import::osDelay;
-use crate::cffi::import::Debug;
 use crate::cffi::import::DebugS;
-use crate::constant::BC26Status;
-use crate::sysutil::poll_for_result;
+use crate::constant::{restype, BC26Status};
 use alloc::boxed::Box;
 use alloc::string::String;
 use core::mem::transmute;
 use core::slice;
 
-#[cfg(not(test))]
-use super::allocator::ALLOCATOR;
 
 #[no_mangle]
-pub extern "C" fn construct(begin: *mut u8, size: usize) -> *mut BC26 {
-    unsafe {
-        let start = begin as usize;
-        // #[cfg(not(test))]
-        //ALLOCATOR.init(start, size);
-    }
+pub extern "C" fn construct(_begin: *mut u8, _size: usize) -> *mut BC26 {
     return unsafe { transmute(Box::new(BC26::new())) };
 }
 
@@ -33,7 +22,9 @@ pub extern "C" fn feed(ptr: *mut BC26, begin: *mut u8, size: usize) -> BC26Statu
             .map(|e| *e as char)
             .collect::<String>()
     };
-    unsafe { DebugS(format!("Feed Line: {:?}\n", line.chars())) };
+
+    // unsafe { DebugS(format!("Feed Line: {:?}\n", line.chars())) };
+
     match bc26.feed(line) {
         Err(e) => e,
         Ok(o) => o,
@@ -41,24 +32,31 @@ pub extern "C" fn feed(ptr: *mut BC26, begin: *mut u8, size: usize) -> BC26Statu
 }
 
 #[no_mangle]
-pub extern "C" fn Init(ptr: *mut BC26) -> BC26Status {
-    let bc26 = unsafe { &mut *ptr };
-    let res = bc26.send_cmd(LiveCommand::init(Command {
-        key: "E0",
-        asyncResp: false,
-        form: CommandForm::AT,
-        parameters: vec![],
-    }));
-    if res.is_err() {
-        return res.err().unwrap();
+pub extern "C" fn Init<'a>(ptr: *mut BC26) -> BC26Status {
+    let bc26 = unsafe { transmute::<*mut BC26, &mut BC26>(ptr) };
+    match bc26.ATE() {
+        Ok(o) => o,
+        Err(e) => e,
     }
-    if poll_for_result(2, 100, || match bc26.process() {
-        Some(_) => true,
-        None => false,
-    }) {
-        return BC26Status::Ok;
-    } else {
-        return BC26Status::Timeout;
+}
+
+#[no_mangle]
+pub extern "C" fn checkConnect(ptr: *mut BC26) -> BC26Status {
+    let bc26 = unsafe { transmute::<*mut BC26, &mut BC26>(ptr) };
+    match bc26.CGATT_read() {
+        Ok(e) => {
+            if e == restype::CGATT_STATE::Attached {
+                unsafe { DebugS(format!("Network attached\n")) };
+                return BC26Status::Ok;
+            } else {
+                unsafe { DebugS(format!("Network detached\n")) };
+                return BC26Status::Ok;
+            }
+        }
+        Err(e) => {
+            unsafe { DebugS(format!("CGATT Error:{:?}\n", e)) };
+            return e;
+        }
     }
 }
 
