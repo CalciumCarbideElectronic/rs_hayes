@@ -115,25 +115,6 @@ mod tests {
     }
 
     #[test]
-    fn test_realcase_parse_CIMI() {
-        //Response of AT+CIMI
-        match decode("0d0a3436303034323333373530393837350d0a0d0a4f4b0d0a") {
-            Ok(bytes) => {
-                let resps = std::str::from_utf8(bytes.as_slice()).unwrap();
-                let mut line = resps.split("\r\n");
-                assert_eq!(Command::parse_line(line.next().unwrap()), Response::Empty);
-                assert_eq!(
-                    Command::parse_line(line.next().unwrap()),
-                    Response::Genric("460042337509875".to_string())
-                );
-                assert_eq!(Command::parse_line(line.next().unwrap()), Response::Empty);
-                assert_eq!(Command::parse_line(line.next().unwrap()), Response::OK);
-            }
-            Err(_) => panic!("wrong"),
-        }
-    }
-
-    #[test]
     fn test_realcase_parse_sng() {
         match decode("0d0a2b4347534e3a203836363937313033303339333634340d0a0d0a4f4b0d0a") {
             Ok(bytes) => {

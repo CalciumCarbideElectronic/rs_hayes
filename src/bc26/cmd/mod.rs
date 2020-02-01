@@ -26,9 +26,8 @@ pub struct Standard{
 pub enum Response{
     OK,
     Empty,
-    Error(Option<ErrCode>),
     Standard(Standard),
-    Genric (String),
+    Error(Option<ErrCode>),
 }
 
 #[derive(Clone,Debug)]
