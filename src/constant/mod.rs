@@ -1,4 +1,4 @@
-pub mod cmdtable;
+pub mod errtype;
 pub mod restype;
 #[repr(C)]
 #[derive(Debug)]

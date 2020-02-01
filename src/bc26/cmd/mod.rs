@@ -1,5 +1,6 @@
 pub mod parse;
 pub mod process;
+use crate::constant::errtype::ErrCode;
 use alloc::{
     vec::Vec,
     boxed::Box,
@@ -20,13 +21,13 @@ pub struct Standard{
     pub key: String,
     pub parameter: Vec<String>
 }
+
 #[derive(Debug,Eq,PartialEq,Clone)]
 pub enum Response{
     OK,
-    Error,
     Empty,
+    Error(Option<ErrCode>),
     Standard(Standard),
-    KVs(BTreeMap<String,String>),
     Genric (String),
 }
 
