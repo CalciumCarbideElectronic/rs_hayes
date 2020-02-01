@@ -75,7 +75,7 @@ impl MQTT {
 mod tests {
     use super::{MQTTFlags, MQTT};
     use std::println;
-    fn getMqttObj<'a>() -> MQTT<'a> {
+    fn getMqttObj() -> MQTT{
         MQTT {
             session: 0,
             host: "foo.bar.com",
