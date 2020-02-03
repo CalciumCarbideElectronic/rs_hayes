@@ -35,14 +35,35 @@ impl BC26 {
             urc_stack: vec![],
         }
     }
+    #[inline]
+    fn lock_sync(&mut self, live_cmd: Rc<RefCell<LiveCommand>>) {
+        if self.in_flight.is_none() {
+            self.in_flight = Some(live_cmd)
+        }
+    }
+
+    #[inline]
+    fn lock_async(&mut self, live_cmd: Rc<RefCell<LiveCommand>>) {
+        if self.async_in_flight.is_none() {
+            self.async_in_flight = Some(live_cmd)
+        }
+    }
 
     #[inline]
     fn unlock_sync(&mut self) {
         self.in_flight = None;
     }
     #[inline]
+    fn unlocak_async(&mut self) {
+        self.async_in_flight = None
+    }
+    #[inline]
     fn can_send_sync_cmd(&self) -> bool {
         self.in_flight.is_none()
+    }
+    #[inline]
+    fn can_send_async_cmd(&self) -> bool {
+        self.async_in_flight.is_none() && self.in_flight.is_none()
     }
     #[inline]
     fn send_sync_cmd(
@@ -53,7 +74,7 @@ impl BC26 {
         let cmd = &e.borrow().cmd;
         match self.send_cmd(cmd) {
             Ok(o) => {
-                self.in_flight = Some(live_cmd);
+                self.lock_sync(live_cmd);
                 Ok(o)
             }
             Err(e) => {
@@ -69,11 +90,19 @@ impl BC26 {
     ) -> Result<BC26Status, BC26Status> {
         let e = live_cmd.clone();
         let cmd = &e.borrow().cmd;
-        self.async_in_flight = Some(live_cmd);
-        self.send_cmd(cmd)
+        match self.send_cmd(cmd) {
+            Ok(o) => {
+                self.lock_async(live_cmd);
+                Ok(o)
+            }
+            Err(e) => {
+                self.unlocak_async();
+                Err(e)
+            }
+        }
     }
 
-    pub fn send_cmd(&mut self, cmd: &Command) -> Result<BC26Status, BC26Status> {
+    fn send_cmd(&mut self, cmd: &Command) -> Result<BC26Status, BC26Status> {
         unsafe {
             let (p, len, cap) = cmd.construct().into_raw_parts();
             uart_send(p, len);
@@ -82,6 +111,7 @@ impl BC26 {
         }
         Ok(BC26Status::Ok)
     }
+
     pub fn feed(&mut self, line: String) -> Result<BC26Status, BC26Status> {
         let parsed_resp = Command::parse_line(line.as_str());
         //Handle URC Here
@@ -103,7 +133,7 @@ impl BC26 {
         }
     }
 
-    pub fn process(&mut self) -> bool {
+    pub fn process_sync(&mut self) -> bool {
         let terminated: bool = match &self.in_flight {
             Some(cmd) => {
                 if cmd.borrow().state == CommandState::Terminated {
@@ -117,6 +147,23 @@ impl BC26 {
 
         if terminated {
             self.unlock_sync();
+        }
+        return terminated;
+    }
+    pub fn process_async(&mut self) -> bool {
+        let terminated: bool = match &self.async_in_flight {
+            Some(cmd) => {
+                if cmd.borrow().state == CommandState::Terminated {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            None => false,
+        };
+
+        if terminated {
+            self.unlocak_async();
         }
         return terminated;
     }
@@ -134,21 +181,26 @@ impl BC26 {
             if let Err(e) = self.send_sync_cmd(live_cmd) {
                 return Err(e);
             }
+            let res = match poll_for_result(2, timeout, || self.process_sync()) {
+                true => Ok(BC26Status::Ok),
+                false => Err(BC26Status::Timeout),
+            };
+            self.unlock_sync();
+            return res;
         } else {
+            if !self.can_send_async_cmd() {
+                return Err(BC26Status::ErrLocked);
+            }
             if let Err(e) = self.send_async_cmd(live_cmd) {
                 return Err(e);
             }
+            let res = match poll_for_result(2, timeout, || self.process_async()) {
+                true => Ok(BC26Status::Ok),
+                false => Err(BC26Status::Timeout),
+            };
+            self.unlocak_async();
+            return res;
         }
-        let res = match poll_for_result(2, timeout, || self.process()) {
-            true => Ok(BC26Status::Ok),
-            false => Err(BC26Status::Timeout),
-        };
-        if !is_async {
-            self.unlock_sync();
-        } else {
-            self.async_in_flight = None;
-        }
-        return res;
     }
 }
 

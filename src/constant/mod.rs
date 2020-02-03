@@ -7,5 +7,7 @@ pub enum BC26Status {
     ErrStateMismatch,
     ErrLocked,
     ErrResponseTypeMismatch,
+    ErrResponseParsedLengthMismatch,
+    ErrUnexpectedError,
     Timeout,
 }

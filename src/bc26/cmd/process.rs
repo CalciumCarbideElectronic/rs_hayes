@@ -1,3 +1,5 @@
+use core::cell::RefCell;
+use alloc::rc::Rc;
 use super::Command;
 use super::Response;
 use alloc::vec::Vec;
@@ -16,12 +18,17 @@ pub struct LiveCommand {
 }
 
 impl LiveCommand {
+    //deprecated
     pub fn init(cmd: Command) -> LiveCommand {
         LiveCommand {
             cmd: cmd,
             state: CommandState::Issued,
             response: vec![],
         }
+    }
+
+    pub fn new(cmd:Command) ->Rc<RefCell<LiveCommand>>{
+        Rc::new(RefCell::new(LiveCommand::init(cmd)))
     }
     pub fn feed(&mut self, line_resp: Response) {
         match line_resp.clone() {
@@ -44,5 +51,16 @@ impl LiveCommand {
                 self.response.push(line_resp.clone());
             }
         }
+    }
+    pub fn is_ok(&self) -> bool {
+        if self.state != CommandState::Terminated {
+            return false;
+        }
+        for i in &self.response {
+            if let Response::Error(_) = i {
+                return false;
+            }
+        }
+        return true;
     }
 }

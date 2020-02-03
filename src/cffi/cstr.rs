@@ -1,19 +1,21 @@
+use crate::cffi::import::strlen;
 use alloc::slice;
 use core::str;
-use crate::cffi::import::{strlen};
-
 
 #[derive(Hash)]
-pub struct CStr{ 
-    inner: [ u8]
+pub struct CStr {
+    inner: [u8],
 }
 
+impl CStr {
+    pub unsafe fn from_raw_ptr<'a>(ptr: *const u8) -> &'a str {
+        let len = strlen(ptr) as usize;
+        str::from_utf8_unchecked(slice::from_raw_parts(ptr, len))
+    }
 
-impl CStr{
-    pub unsafe fn len(&self)->usize{
+    pub unsafe fn len(&self) -> usize {
         let bytes = self.to_bytes_with_nul();
         bytes.len()
-
     }
 
     pub unsafe fn from_ptr<'a>(ptr: *const u8) -> &'a CStr {
@@ -27,7 +29,6 @@ impl CStr{
         &*(bytes as *const [u8] as *const CStr)
     }
 
-
     #[inline]
     pub fn to_bytes(&self) -> &[u8] {
         let bytes = self.to_bytes_with_nul();
@@ -36,11 +37,10 @@ impl CStr{
 
     #[inline]
     pub fn to_bytes_with_nul(&self) -> &[u8] {
-        unsafe { &*(&self.inner as *const [ u8] as *const [u8]) }
+        unsafe { &*(&self.inner as *const [u8] as *const [u8]) }
     }
 
-    pub unsafe fn to_str_unsafe(&self) -> &str{
+    pub unsafe fn to_str_unsafe(&self) -> &str {
         str::from_utf8_unchecked(self.to_bytes())
     }
-    
 }

@@ -1,10 +1,9 @@
 use alloc::string::String;
 #[cfg(not(test))]
-extern "C" {
+extern {
     pub fn uart_send(data: *const u8, size: usize) -> i32;
     pub fn Debug(data: *const u8);
     pub fn strlen(p: *const u8) -> u32;
-    pub fn osDelay(tick: usize);
 }
 
 pub unsafe fn DebugS(s: String) {
