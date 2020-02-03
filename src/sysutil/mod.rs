@@ -1,4 +1,7 @@
-use crate::cffi::import::osDelay;
+pub mod import;
+pub mod mutex;
+
+use import::osDelay;
 
 pub fn poll_for_result<F>(poll_step: usize, max_tick: usize, mut func: F) -> bool
 where
