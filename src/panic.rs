@@ -1,13 +1,18 @@
-use core::panic::PanicInfo;
+use crate::sysutil::import::osDelay;
 use super::cffi::import;
+use crate::cffi::import::DebugS;
+use alloc::string::String;
+use core::panic::PanicInfo;
 
 #[cfg(not(test))]
 #[panic_handler]
 pub fn panic(info: &PanicInfo) -> ! {
     //just do nothing
-    let s =  alloc::string::String::from( format!("panic:{:?}", info));
-    unsafe{
-        import::uart_send(s.as_bytes().as_ptr(),s.len());
+    unsafe {
+        DebugS(format!("{:?}\n\n", info));
+        loop {
+            DebugS(String::from("Panicing!\n"));
+            osDelay(10000);
+        }
     }
-    loop {}
 }

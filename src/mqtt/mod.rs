@@ -6,6 +6,7 @@ use bitflags::bitflags;
 pub mod cfg;
 pub mod connect;
 pub mod publish;
+pub mod export;
 
 bitflags! {
     pub struct MQTTFlags: u8{
@@ -22,7 +23,7 @@ bitflags! {
 
 #[derive(Debug)]
 pub struct MQTT {
-    BC26: Option<Box<BC26>>,
+    BC26: Box<BC26>,
     session: u8,
     host: &'static str,
     port: u16,
@@ -39,7 +40,7 @@ pub struct MQTT {
 impl Default for MQTT {
     fn default() -> MQTT {
         MQTT {
-            BC26: None,
+            BC26: Box::new(BC26::new()),
             session: 0,
             host: "",
             port: 0,
@@ -58,7 +59,6 @@ impl Default for MQTT {
 impl MQTT {
     pub fn new(bc26: Box<BC26>) -> MQTT {
         return MQTT {
-            BC26: Some(bc26),
             session: 0,
             host: "foo.bar.com",
             port: 12345,
@@ -75,7 +75,7 @@ impl MQTT {
 mod tests {
     use super::{MQTTFlags, MQTT};
     use std::println;
-    fn getMqttObj() -> MQTT{
+    fn getMqttObj() -> MQTT {
         MQTT {
             session: 0,
             host: "foo.bar.com",

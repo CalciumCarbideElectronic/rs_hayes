@@ -1,29 +1,45 @@
 use super::MQTT;
+use crate::bc26::cmd::{process::LiveCommand, Command, CommandForm, CommandParamater};
+use crate::constant::BC26Status;
 use alloc::boxed::Box;
+use alloc::rc::Rc;
 use alloc::string::String;
+use core::cell::RefCell;
 
 impl MQTT {
-    pub fn set_open(&self) -> Box<String> {
-        Box::new(format!(
-            r#"AT+QMTOPEN={:},"{:}",{:}"#,
-            self.session, self.host, self.port
-        ))
+    pub fn open_network(
+        &mut self,
+        conn_id: u16,
+        host_name: &str,
+        port: u16,
+    ) -> Result<BC26Status, BC26Status> {
+        let opencmd = LiveCommand::new(Command {
+            key: "QMTOPEN",
+            asyncResp: true,
+            form: CommandForm::ExtWrite,
+            parameters: vec![
+                CommandParamater::Numerical(conn_id as u32),
+                CommandParamater::Literal(String::from(host_name)),
+                CommandParamater::Numerical(port as u32),
+            ],
+        });
+        self.BC26.poll_cmd(opencmd, 5000)
     }
-    pub fn set_close(&self) -> Box<String> {
-        Box::new(format!(r#"AT+QMTCLOSE={:}"#, self.session))
-    }
-    pub fn set_conn(&self, c_id: &str, username: &str, password: &str) -> Box<String> {
-        if username.len() > 0 {
-            Box::new(format!(
-                r#"AT+QMTCONN={:},"{:}","{:}","{:}""#,
-                self.session, c_id, username, password
-            ))
-        } else {
-            Box::new(format!(r#"AT+QMTCONN={:},"{:}""#, self.session, c_id))
-        }
-    }
-    pub fn set_disconn(&self) -> Box<String> {
-        Box::new(format!(r#"AT+QMTDISC={:}"#, self.session))
+
+    pub fn open_connection(
+        &mut self,
+        conn_id: u16,
+        client_id: &str,
+    ) -> Result<BC26Status, BC26Status> {
+        let conncmd = LiveCommand::new(Command {
+            key: "QMTCONN",
+            asyncResp: true,
+            form: CommandForm::ExtWrite,
+            parameters: vec![
+                CommandParamater::Numerical(conn_id as u32),
+                CommandParamater::Literal(String::from(client_id)),
+            ], });
+        self.BC26.poll_cmd(conncmd, 5000)
     }
 }
 
@@ -45,33 +61,5 @@ mod tests {
             flag: MQTTFlags::WILL | MQTTFlags::KEEP_ALIVE | MQTTFlags::WILL_RETAIN,
             ..Default::default()
         }
-    }
-
-    #[test]
-    pub fn test_set_open() {
-        let a = getMqttObj();
-        assert_eq!(a.set_open().as_str(), r#"AT+QMTOPEN=3,"foo.bar.com",12345"#);
-    }
-    #[test]
-    pub fn test_set_close() {
-        let a = getMqttObj();
-        assert_eq!(a.set_close().as_str(), r#"AT+QMTCLOSE=3"#);
-    }
-    #[test]
-    pub fn test_set_conn() {
-        let a = getMqttObj();
-        assert_eq!(
-            a.set_conn("fooo", "1234", "4567").as_str(),
-            r#"AT+QMTCONN=3,"fooo","1234","4567""#
-        );
-        assert_eq!(
-            a.set_conn("fooo", "", "").as_str(),
-            r#"AT+QMTCONN=3,"fooo""#
-        );
-    }
-    #[test]
-    pub fn test_set_disconn() {
-        let a = getMqttObj();
-        assert_eq!(a.set_disconn().as_str(), r#"AT+QMTDISC=3"#);
     }
 }
