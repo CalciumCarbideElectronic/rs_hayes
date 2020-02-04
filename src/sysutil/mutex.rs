@@ -1,12 +1,14 @@
-use crate::cffi::import::DebugS;
 use crate::sysutil::import::osMutexAcquire;
 use crate::sysutil::import::osMutexAttr_t;
 use crate::sysutil::import::osMutexDelete;
 use crate::sysutil::import::osMutexId_t;
 use crate::sysutil::import::osMutexNew;
 use crate::sysutil::import::osMutexRelease;
+use alloc::fmt::Debug;
+use alloc::fmt::Formatter;
 use core::cell::UnsafeCell;
 use core::ffi::c_void;
+use core::fmt;
 use core::marker::Send;
 use core::ops::Deref;
 use core::ops::DerefMut;
@@ -46,7 +48,7 @@ where
         let mutex = unsafe {
             osMutexNew(&osMutexAttr_t {
                 name: null(),
-                attr_bits: 0,
+                attr_bits: 1,
                 cb_mem: 0 as *const c_void,
                 cb_size: 0,
             })
@@ -67,11 +69,8 @@ where
         false
     }
     pub fn lock(&self) -> LockResult<MutexGuard<'_, T>> {
-
         unsafe {
-             DebugS(format!("try to lock {:p} \n\n",self.cmsis_mutex_id));
-             osMutexAcquire(self.cmsis_mutex_id, usize::max_value()) ;
-             DebugS(format!("get lock success \n\n"))
+            osMutexAcquire(self.cmsis_mutex_id, usize::max_value());
         };
         MutexGuard::new(self)
     }
@@ -83,6 +82,16 @@ where
 
 unsafe impl<T: ?Sized + Send> Send for Mutex<T> where T: Sized {}
 unsafe impl<T: ?Sized + Send> Sync for Mutex<T> where T: Sized {}
+
+impl<T> Debug for Mutex<T>
+where
+    T: Debug,
+    T: Sized,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "Mutexed:{:?}", self.raw_data)
+    }
+}
 
 impl<T> From<T> for Mutex<T>
 where
