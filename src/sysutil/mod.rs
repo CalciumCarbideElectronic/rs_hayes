@@ -11,7 +11,7 @@ where
 {
     let mut tick = 0 as usize;
     loop {
-        tick += 1;
+        tick += poll_step;
         if tick >= max_tick {
             return false;
         }

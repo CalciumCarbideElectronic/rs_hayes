@@ -3,7 +3,7 @@ use core::ffi::c_void;
 pub type osMutexId_t = *const c_void;
 pub type osMessageQueueId_t = *const c_void;
 
-#[derive(PartialEq)]
+#[derive(PartialEq,Debug,Clone)]
 pub enum osStatus_t {
     osOK = 0,
     osError = -1,
@@ -30,7 +30,7 @@ pub struct osMessageQueueAttr_t {
     pub mq_size: u32,
 }
 
-extern "C" {
+extern  {
 
     pub fn osDelay(tick: usize);
     //Mutex
