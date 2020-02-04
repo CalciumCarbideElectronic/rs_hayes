@@ -2,9 +2,12 @@ use crate::sysutil::import::{
     osMessageQueueAttr_t, osMessageQueueGet, osMessageQueueId_t, osMessageQueueNew,
     osMessageQueuePut, osStatus_t,
 };
+use alloc::fmt;
+use alloc::fmt::Debug;
+use alloc::fmt::Formatter;
 use core::ffi::c_void;
 use core::marker::PhantomData;
-use core::mem::{size_of, zeroed};
+use core::mem::{forget, size_of, MaybeUninit};
 use core::ptr::null;
 
 pub struct Queue<T> {
@@ -14,7 +17,7 @@ pub struct Queue<T> {
 
 impl<T> Queue<T>
 where
-    T: Sized + Clone,
+    T: Sized + Clone + Debug,
 {
     pub fn new(msg_len: u32) -> Queue<T> {
         let msg_size = size_of::<T>() as u32;
@@ -41,6 +44,7 @@ where
         unsafe {
             let ptr: *const T = &data;
             let status = osMessageQueuePut(self.cmsis_queue_id, ptr as *const c_void, 0, tick);
+            forget(data);
             if status == osStatus_t::osOK {
                 return Ok(status);
             } else {
@@ -50,7 +54,7 @@ where
     }
     pub fn get(&self, tick: u32) -> Result<T, osStatus_t> {
         unsafe {
-            let mut data: T = zeroed::<T>();
+            let mut data: T = MaybeUninit::zeroed().assume_init();
             let ptr: *mut T = &mut data;
             let status = osMessageQueueGet(self.cmsis_queue_id, ptr as *mut c_void, 0, tick);
             if status == osStatus_t::osOK {
@@ -59,6 +63,9 @@ where
                 return Err(status);
             }
         }
+    }
+    pub fn get_qid(&self) -> osMessageQueueId_t {
+        self.cmsis_queue_id
     }
 }
 
@@ -71,5 +78,13 @@ where
             cmsis_queue_id: id,
             _phantom: PhantomData,
         };
+    }
+}
+impl<T> fmt::Debug for Queue<T>
+where
+    T: Sized,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "CMSIS Queue :{:}", self.cmsis_queue_id as u32)
     }
 }
