@@ -1,12 +1,16 @@
 mod opt;
+use crate::bc26::MutexedBC26;
 use crate::bc26::BC26;
+use crate::sysutil::import::osMessageQueueId_t;
+use crate::sysutil::mutex::Mutex;
 use alloc::boxed::Box;
+use alloc::sync::Arc;
 use bitflags::bitflags;
 
 pub mod cfg;
 pub mod connect;
-pub mod publish;
 pub mod export;
+pub mod publish;
 
 bitflags! {
     pub struct MQTTFlags: u8{
@@ -23,7 +27,7 @@ bitflags! {
 
 #[derive(Debug)]
 pub struct MQTT {
-    BC26: Box<BC26>,
+    bc26: Arc<Mutex<BC26>>,
     session: u8,
     host: &'static str,
     port: u16,
@@ -40,7 +44,7 @@ pub struct MQTT {
 impl Default for MQTT {
     fn default() -> MQTT {
         MQTT {
-            BC26: Box::new(BC26::new()),
+            bc26: BC26::new(0 as osMessageQueueId_t),
             session: 0,
             host: "",
             port: 0,
@@ -57,8 +61,9 @@ impl Default for MQTT {
 }
 
 impl MQTT {
-    pub fn new(bc26: Box<BC26>) -> MQTT {
+    pub fn new(bc26: MutexedBC26) -> MQTT {
         return MQTT {
+            bc26: bc26.clone(),
             session: 0,
             host: "foo.bar.com",
             port: 12345,

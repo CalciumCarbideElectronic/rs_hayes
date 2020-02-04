@@ -23,7 +23,10 @@ impl MQTT {
                 CommandParamater::Numerical(port as u32),
             ],
         });
-        self.BC26.poll_cmd(opencmd, 5000)
+        match &mut self.bc26.lock() {
+            Ok(e) => e.poll_cmd(opencmd, 5000),
+            _ => Err(BC26Status::ErrMutexError),
+        }
     }
 
     pub fn open_connection(
@@ -38,8 +41,12 @@ impl MQTT {
             parameters: vec![
                 CommandParamater::Numerical(conn_id as u32),
                 CommandParamater::Literal(String::from(client_id)),
-            ], });
-        self.BC26.poll_cmd(conncmd, 5000)
+            ],
+        });
+        match &mut self.bc26.lock() {
+            Ok(e) => e.poll_cmd(conncmd, 5000),
+            _ => Err(BC26Status::ErrMutexError),
+        }
     }
 }
 

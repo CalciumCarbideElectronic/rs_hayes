@@ -1,3 +1,4 @@
+use crate::bc26::MutexedBC26;
 use crate::bc26::BC26;
 use crate::cffi::cstr::CStr;
 use crate::cffi::import::strlen;
@@ -8,10 +9,10 @@ use alloc::{boxed::Box, string::String};
 use core::intrinsics::transmute;
 use core::{slice, str};
 
+
 #[no_mangle]
-pub extern "C" fn mqtt_construct(ptr: *mut BC26) -> *mut MQTT {
-    let bc26 = unsafe { transmute::<*mut BC26, Box<BC26>>(ptr) };
-    return unsafe { transmute(Box::new(MQTT::new(bc26))) };
+pub extern "C" fn mqtt_construct(ptr: *mut MutexedBC26) -> *mut MQTT {
+    return unsafe { transmute(Box::new(MQTT::new((&*ptr).clone()))) };
 }
 
 #[no_mangle]

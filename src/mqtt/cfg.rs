@@ -3,7 +3,7 @@ use crate::bc26::cmd::{process::LiveCommand, Command, CommandForm, CommandParama
 use crate::constant::BC26Status;
 use alloc::rc::Rc;
 use alloc::str;
-use alloc::string::{String, ToString};
+use alloc::string::{ToString};
 use core::cell::RefCell;
 
 impl MQTT {
@@ -119,7 +119,10 @@ impl MQTT {
 
     fn sync_with_check(&mut self, cmd: Command) -> Result<BC26Status, BC26Status> {
         let mut cmd = Rc::new(RefCell::new(LiveCommand::init(cmd)));
-        let res = self.BC26.poll_cmd(cmd.clone(), 300);
+        let res = match &mut self.bc26.lock() {
+            Ok(e) => e.poll_cmd(cmd.clone(), 300),
+            Err(e) => Err(BC26Status::ErrMutexError),
+        };
         if let Err(_) = res {
             return Err(BC26Status::Timeout);
         } else {
