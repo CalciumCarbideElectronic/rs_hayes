@@ -42,7 +42,7 @@ impl BC26 {
             form: CommandForm::ExtRead,
             parameters: vec![],
         })));
-        match self.poll_cmd(CGATT.clone(), 200) {
+        match self.poll_cmd(CGATT.clone(), 500) {
             Err(e) => {
                 return Err(e);
             }
