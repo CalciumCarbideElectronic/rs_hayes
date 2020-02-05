@@ -48,7 +48,12 @@ impl MQTT {
             _ => Err(BC26Status::ErrMutexError),
         }
     }
+
+    // pub fn update_connection_info(&mut self,connid)->Result<,BC26Status>{
+
+    // }
 }
+
 
 #[cfg(test)]
 mod tests {

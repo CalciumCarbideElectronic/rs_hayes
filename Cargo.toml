@@ -18,12 +18,18 @@ unix = []
 
 heapless="0.5.1"
 bitflags = "1.0"
-alloc-cortex-m = "0.3.5"
 hex = { version = "0.4", default-features = false }
+serde = { version = "1.0", default-features = false, features = ["alloc"] }
+
+[build-dependencies]
+cc="1.0"
+
 
 
 
 [profile.release]
 opt-level = 's' # or 'z'
 panic = 'abort'
+
+
 

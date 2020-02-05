@@ -3,7 +3,7 @@ use core::ffi::c_void;
 pub type osMutexId_t = *const c_void;
 pub type osMessageQueueId_t = *const c_void;
 
-#[derive(PartialEq,Debug,Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum osStatus_t {
     osOK = 0,
     osError = -1,
@@ -58,7 +58,13 @@ extern  {
         msg_ptr: *mut c_void,
         msg_prio: u8,
         timeout: u32,
-
     ) -> osStatus_t;
 
+}
+
+#[cfg(test)]
+mod test {
+
+    #[link(name = "sysdummy")]
+    extern "C" {}
 }

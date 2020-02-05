@@ -1,6 +1,5 @@
 use crate::cffi::import;
 use crate::cffi::import::DebugS;
-use alloc_cortex_m::CortexMHeap;
 mod freertos;
 
 // #[cfg(not(test))]

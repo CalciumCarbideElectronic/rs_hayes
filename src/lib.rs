@@ -6,7 +6,6 @@
 
 #[macro_use]
 extern crate alloc;
-extern crate alloc_cortex_m;
 
 pub mod export;
 

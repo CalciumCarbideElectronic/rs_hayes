@@ -1,5 +1,6 @@
 pub mod parse;
 pub mod process;
+pub mod de;
 use crate::constant::errtype::ErrCode;
 use alloc::{
     vec::Vec,

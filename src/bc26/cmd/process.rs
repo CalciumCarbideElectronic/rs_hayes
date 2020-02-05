@@ -1,8 +1,9 @@
-use core::cell::RefCell;
-use alloc::rc::Rc;
 use super::Command;
 use super::Response;
+use alloc;
+use alloc::rc::Rc;
 use alloc::vec::Vec;
+use core::cell::RefCell;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum CommandState {
@@ -27,7 +28,7 @@ impl LiveCommand {
         }
     }
 
-    pub fn new(cmd:Command) ->Rc<RefCell<LiveCommand>>{
+    pub fn new(cmd: Command) -> Rc<RefCell<LiveCommand>> {
         Rc::new(RefCell::new(LiveCommand::init(cmd)))
     }
     pub fn feed(&mut self, line_resp: Response) {
@@ -62,5 +63,13 @@ impl LiveCommand {
             }
         }
         return true;
+    }
+}
+
+impl IntoIterator for LiveCommand {
+    type Item = Response;
+    type IntoIter = alloc::vec::IntoIter<Self::Item>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.response.into_iter()
     }
 }
