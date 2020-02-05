@@ -93,9 +93,4 @@ mod tests {
         }
     }
 
-    #[test]
-    pub fn test_foo() {
-        let a = getMqttObj();
-        println!("{:?}", a);
-    }
 }
