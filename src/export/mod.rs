@@ -70,7 +70,7 @@ pub extern "C" fn checkConnect(ptr: *mut MutexedBC26) -> BC26Status {
     match &mut bc26.clone().lock() {
         Ok(e) => match e.CGATT_read() {
             Ok(e) => {
-                if e == restype::CGATT_STATE::Attached {
+                if e.state == String::from("1") {
                     unsafe { DebugS(format!("Network attached\n")) };
                     return BC26Status::Ok;
                 } else {

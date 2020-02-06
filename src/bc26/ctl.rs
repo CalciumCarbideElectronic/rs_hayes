@@ -1,17 +1,13 @@
-use crate::bc26::cmd::{process::LiveCommand, Command, CommandForm, Response, Standard};
+use crate::bc26::cmd::{
+    from_resp_vec, process::LiveCommand, Command, CommandForm, Response, Standard,
+};
 use crate::bc26::BC26;
-use crate::cffi::import::DebugS;
+
+use crate::constant::restype::CGATTResponse;
 use crate::constant::{restype, BC26Status};
-use alloc::{rc::Rc, string::String, vec::Vec};
+use alloc::{rc::Rc, vec::Vec};
 use core::cell::RefCell;
 
-macro_rules! assert_resp_len {
-    ($res:ident,$len:expr) => {
-        if !(($res).parameter.len() == $len) {
-            return Err(BC26Status::ErrResponseParsedLengthMismatch);
-        }
-    };
-}
 
 impl BC26 {
     fn get_standard_response<'a>(&self, resps: &'a Vec<Response>) -> Option<&'a Standard> {
@@ -35,7 +31,7 @@ impl BC26 {
             Err(e) => Err(e),
         }
     }
-    pub fn CGATT_read(&mut self) -> Result<restype::CGATT_STATE, BC26Status> {
+    pub fn CGATT_read(&mut self) -> Result<restype::CGATTResponse, BC26Status> {
         let mut CGATT = Rc::new(RefCell::new(LiveCommand::init(Command {
             key: "CGATT",
             asyncResp: false,
@@ -47,19 +43,12 @@ impl BC26 {
                 return Err(e);
             }
             Ok(_) => {
-                if let Some(res) = self.get_standard_response(&CGATT.borrow().response) {
-                    assert_resp_len!(res, 1);
-                    let tcode = res.parameter[0].as_str();
-                    if tcode == "1" {
-                        return Ok(restype::CGATT_STATE::Attached);
-                    } else if tcode == "0" {
-                        return Ok(restype::CGATT_STATE::Detached);
-                    } else {
-                        return Err(BC26Status::ErrResponseTypeMismatch);
-                    }
-                } else {
-                    return Err(BC26Status::ErrResponseTypeMismatch);
-                }
+                let res = from_resp_vec::<CGATTResponse>(&CGATT.borrow().response);
+                let r = match res {
+                    Ok(s) => Ok(s),
+                    Err(e) => Err(BC26Status::ErrResponseTypeMismatch),
+                };
+                return r
             }
         }
     }

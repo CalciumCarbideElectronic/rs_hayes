@@ -1,6 +1,7 @@
 pub mod parse;
 pub mod process;
 pub mod de;
+pub use de::{Deserializer,from_resp_vec};
 use crate::constant::errtype::ErrCode;
 use alloc::{
     vec::Vec,

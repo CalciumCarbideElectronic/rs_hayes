@@ -1,4 +1,10 @@
 use alloc::string::String;
+use serde::Deserialize;
+
+#[derive(PartialEq, Deserialize)]
+pub struct CGATTResponse {
+    pub state: String,
+}
 
 #[derive(PartialEq)]
 pub enum CGATT_STATE {
@@ -33,4 +39,11 @@ pub struct QMTOPENReadResponse {
 pub struct QMTOPENWriteResponse {
     conn_id: u8,
     result: QMTOPENState,
+}
+
+#[derive(Deserialize,Debug)]
+pub struct QMTPUBResponse {
+    conn_id: String,
+    msg_id: String,
+    result: String,
 }

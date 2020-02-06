@@ -1,26 +1,46 @@
 use super::{MQTTFlags, MQTT};
+use crate::bc26::cmd::{
+    de::{from_resp_vec, Deserializer},
+    process::LiveCommand,
+    Command, CommandForm, CommandParamater,
+};
+use crate::cffi::import::DebugS;
+use crate::constant::{restype::QMTPUBResponse, BC26Status};
 use alloc::boxed::Box;
+use alloc::rc::Rc;
 use alloc::string::String;
+use core::cell::RefCell;
 
 impl MQTT {
-    pub fn cmd_publish(
+    pub fn qmtpub_write(
         &self,
+        conn_id: u8,
         msg_id: u16,
         qos: u8,
         retain: bool,
         topic: &str,
         msg: &str,
-    ) -> Box<String> {
-        let mut base = Box::new(format!(
-            r#"AT+QMTPUB={:},{:},{:},{:},"{:}""#,
-            self.session, msg_id, qos, retain as u8, topic
-        ));
-        if (self.flag & MQTTFlags::SEND_FORMAT) == MQTTFlags::SEND_FORMAT {
-            base.push_str(format!(r#","{:}""#, msg).as_str());
-        } else {
-            base.push_str(format!(r#","{:}""#, msg).as_str());
+    ) -> Result<QMTPUBResponse, BC26Status> {
+        let mut publish = LiveCommand::new(Command {
+            key: "QMTPUB",
+            asyncResp: true,
+            form: CommandForm::ExtWrite,
+            parameters: vec![
+                CommandParamater::Numerical(conn_id as u32),
+                CommandParamater::Numerical(msg_id as u32),
+                CommandParamater::Numerical(qos as u32),
+                CommandParamater::Numerical(retain as u32),
+                CommandParamater::Literal(String::from(topic)),
+                CommandParamater::Literal(String::from(msg)),
+            ],
+        });
+        match &mut self.bc26.lock() {
+            Ok(e) => {
+                e.poll_cmd(publish.clone(), 5000)?;
+                Ok(from_resp_vec::<QMTPUBResponse>(&publish.borrow().response)?)
+            }
+            _ => Err(BC26Status::ErrMutexError),
         }
-        base
     }
 }
 
@@ -29,7 +49,7 @@ mod tests {
     use super::{MQTTFlags, MQTT};
     use std::println;
 
-    fn getMqttObj() -> MQTT{
+    fn getMqttObj() -> MQTT {
         MQTT {
             session: 3,
             host: "foo.bar.com",
