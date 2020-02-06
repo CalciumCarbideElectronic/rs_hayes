@@ -21,9 +21,6 @@ where
 {
     lock: &'a Mutex<T>,
 }
-pub struct TryLockResult<T> {
-    inner: T,
-}
 pub type LockResult<T> = Result<T, LockError>;
 
 pub struct Mutex<T> {
@@ -137,8 +134,6 @@ where
 {
     #[inline]
     fn drop(&mut self) {
-        unsafe {
-            self.lock.unlock();
-        }
+        self.lock.unlock();
     }
 }

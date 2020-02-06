@@ -1,26 +1,14 @@
-use crate::bc26::cmd::{
-    from_resp_vec, process::LiveCommand, Command, CommandForm, Response, Standard,
-};
+use crate::bc26::cmd::{from_resp_vec, process::LiveCommand, Command, CommandForm};
 use crate::bc26::BC26;
 
 use crate::constant::restype::CGATTResponse;
 use crate::constant::{restype, BC26Status};
-use alloc::{rc::Rc, vec::Vec};
+use alloc::rc::Rc;
 use core::cell::RefCell;
 
-
 impl BC26 {
-    fn get_standard_response<'a>(&self, resps: &'a Vec<Response>) -> Option<&'a Standard> {
-        for i in resps {
-            if let Response::Standard(s) = i {
-                return Some(&s);
-            }
-        }
-        return None;
-    }
-
     pub fn ATE(&mut self) -> Result<BC26Status, BC26Status> {
-        let mut cmd_ate = Rc::new(RefCell::new(LiveCommand::init(Command {
+        let cmd_ate = Rc::new(RefCell::new(LiveCommand::init(Command {
             key: "E0",
             asyncResp: false,
             form: CommandForm::AT,
@@ -32,7 +20,7 @@ impl BC26 {
         }
     }
     pub fn CGATT_read(&mut self) -> Result<restype::CGATTResponse, BC26Status> {
-        let mut CGATT = Rc::new(RefCell::new(LiveCommand::init(Command {
+        let CGATT = Rc::new(RefCell::new(LiveCommand::init(Command {
             key: "CGATT",
             asyncResp: false,
             form: CommandForm::ExtRead,
@@ -46,29 +34,10 @@ impl BC26 {
                 let res = from_resp_vec::<CGATTResponse>(&CGATT.borrow().response);
                 let r = match res {
                     Ok(s) => Ok(s),
-                    Err(e) => Err(BC26Status::ErrResponseTypeMismatch),
+                    Err(_) => Err(BC26Status::ErrResponseTypeMismatch),
                 };
-                return r
+                return r;
             }
         }
-    }
-    pub fn CSCON_read(&mut self) -> Result<restype::CSCON_STATE, BC26Status> {
-        let mut CGATT = Rc::new(RefCell::new(LiveCommand::init(Command {
-            key: "CSCON",
-            asyncResp: false,
-            form: CommandForm::ExtRead,
-            parameters: vec![],
-        })));
-        // match self.poll_cmd(CSCON.clone(), 300){
-        //     Err(e) =>{
-        //         return Err(e)
-        //     },
-        //     Ok(_)=>{
-        //         for r in &CSCON.borrow().response{
-
-        //         }
-        //     }
-        // }
-        return Err(BC26Status::Timeout);
     }
 }

@@ -26,7 +26,7 @@ impl From<osStatus_t> for BC26Status {
     }
 }
 impl From<DeError> for BC26Status {
-    fn from(t: DeError) -> BC26Status {
+    fn from(_t: DeError) -> BC26Status {
         BC26Status::ErrDeserializer
     }
 }

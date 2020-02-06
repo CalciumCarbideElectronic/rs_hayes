@@ -7,7 +7,6 @@ extern {
     pub fn strlen(p: *const u8) -> usize;
 }
 
-#[warn(non_snake_case)]
 pub unsafe fn DebugS(s: String) {
     Debug(s.as_str().as_ptr(), s.len());
 }

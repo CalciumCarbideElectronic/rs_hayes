@@ -1,15 +1,11 @@
-use super::{MQTTFlags, MQTT};
+use super::{MQTT};
 use crate::bc26::cmd::{
-    de::{from_resp_vec, Deserializer},
+    de::{from_resp_vec},
     process::LiveCommand,
     Command, CommandForm, CommandParamater,
 };
-use crate::cffi::import::DebugS;
 use crate::constant::{restype::QMTPUBResponse, BC26Status};
-use alloc::boxed::Box;
-use alloc::rc::Rc;
 use alloc::string::String;
-use core::cell::RefCell;
 
 impl MQTT {
     pub fn qmtpub_write(
@@ -21,7 +17,7 @@ impl MQTT {
         topic: &str,
         msg: &str,
     ) -> Result<QMTPUBResponse, BC26Status> {
-        let mut publish = LiveCommand::new(Command {
+        let publish = LiveCommand::new(Command {
             key: "QMTPUB",
             asyncResp: true,
             form: CommandForm::ExtWrite,

@@ -42,7 +42,7 @@ impl LiveCommand {
                     self.state = CommandState::Terminated;
                 }
             }
-            Response::Standard(st) => {
+            Response::Standard(_) => {
                 self.response.push(line_resp.clone());
                 if self.cmd.asyncResp {
                     self.state = CommandState::Terminated;

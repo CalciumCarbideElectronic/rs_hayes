@@ -1,5 +1,4 @@
 use crate::sysutil::import::osDelay;
-use super::cffi::import;
 use crate::cffi::import::DebugS;
 use alloc::string::String;
 use core::panic::PanicInfo;

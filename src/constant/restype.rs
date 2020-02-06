@@ -6,19 +6,14 @@ pub struct CGATTResponse {
     pub state: String,
 }
 
-#[derive(PartialEq)]
-pub enum CGATT_STATE {
-    Detached = 0,
-    Attached = 1,
-}
+// #[derive(PartialEq)]
+// pub enum CGATT_STATE {
+//     Detached = 0,
+//     Attached = 1,
+// }
 
 #[derive(PartialEq)]
-pub enum CSCON_STATE {
-    EnableURC = 0,
-    Attached = 1,
-}
-
-#[derive(PartialEq)]
+#[allow(dead_code)]
 pub enum QMTOPENState {
     FailedToOpen = -1,
     Ok = 0,

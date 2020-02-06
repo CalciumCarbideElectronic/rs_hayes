@@ -3,7 +3,6 @@ use crate::bc26::MutexedBC26;
 use crate::bc26::BC26;
 use crate::sysutil::import::osMessageQueueId_t;
 use crate::sysutil::mutex::Mutex;
-use alloc::boxed::Box;
 use alloc::sync::Arc;
 use bitflags::bitflags;
 

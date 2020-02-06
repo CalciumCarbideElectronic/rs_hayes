@@ -165,7 +165,7 @@ impl<'de, 'a> MapAccess<'de> for SeperatedResponse<'a, 'de> {
         V: DeserializeSeed<'de>,
     {
         match &self.de.cur_resp_field {
-            Some(s) => seed.deserialize(&mut *self.de),
+            Some(_s) => seed.deserialize(&mut *self.de),
             _ => Err(Error::UnexpectedState),
         }
     }

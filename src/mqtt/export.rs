@@ -3,7 +3,7 @@ use crate::cffi::cstr::CStr;
 use crate::cffi::import::DebugS;
 use crate::constant::BC26Status;
 use crate::mqtt::MQTT;
-use alloc::{boxed::Box, string::String};
+use alloc::{boxed::Box};
 use core::intrinsics::transmute;
 
 #[no_mangle]

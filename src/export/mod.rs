@@ -1,6 +1,6 @@
 use crate::bc26::{MutexedBC26, BC26};
 use crate::cffi::import::DebugS;
-use crate::constant::{restype, BC26Status};
+use crate::constant::{BC26Status};
 use crate::sysutil::import::osMessageQueueId_t;
 use crate::sysutil::queue::Queue;
 use alloc::boxed::Box;
