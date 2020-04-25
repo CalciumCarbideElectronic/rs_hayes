@@ -84,21 +84,21 @@ mod test{
     fn test_as_test(){
         let mut c = getSyncCommand();
         c.form=CommandForm::ExtTest;
-        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP=?")
+        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP=?\r\n")
     }
 
     #[test]
     fn test_as_read(){
         let mut c = getSyncCommand();
         c.form=CommandForm::ExtRead;
-        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP?")
+        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP?\r\n")
     }
 
     #[test]
     fn test_as_exec(){
         let mut c = getSyncCommand();
         c.form=CommandForm::ExtExec;
-        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP")
+        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP\r\n")
     }
 
     #[test]
@@ -106,11 +106,11 @@ mod test{
         let mut c = getSyncCommand();
         c.form=CommandForm::ExtWrite;
 
-        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP=1");
+        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP=1\r\n");
         c.parameters.push(
             CommandParamater::Literal("foo".to_string())
         );
-        assert_eq!(c.construct().as_str(),r#"AT+QATWAKEUP=1,"foo""#);
+        assert_eq!(c.construct().as_str(),"AT+QATWAKEUP=1,\"foo\"\r\n");
     }
 }
 

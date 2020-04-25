@@ -37,6 +37,24 @@ impl BC26 {
     pub fn get_qid(&self) -> osMessageQueueId_t {
         self.queue.get_qid()
     }
+
+    pub fn poll_cmd(
+        &mut self,
+        live_cmd: Rc<RefCell<LiveCommand>>,
+        timeout: usize,
+    ) -> Result<BC26Status, BC26Status> {
+        self.send_cmd(live_cmd)?;
+        match poll_for_result(1, timeout, || {
+            let res = self.poll_input(5);
+            if res.is_err() {
+                return false;
+            }
+            self.process()
+        }) {
+            true => Ok(BC26Status::Ok),
+            false => Err(BC26Status::Timeout),
+        }
+    }
     #[inline]
     fn send_cmd(&mut self, live_cmd: Rc<RefCell<LiveCommand>>) -> Result<BC26Status, BC26Status> {
         self.in_flight = Some(live_cmd.clone());
@@ -76,23 +94,6 @@ impl BC26 {
         }
     }
 
-    pub fn poll_cmd(
-        &mut self,
-        live_cmd: Rc<RefCell<LiveCommand>>,
-        timeout: usize,
-    ) -> Result<BC26Status, BC26Status> {
-        self.send_cmd(live_cmd)?;
-        match poll_for_result(1, timeout, || {
-            let res = self.poll_input(5);
-            if res.is_err() {
-                return false;
-            }
-            self.process()
-        }) {
-            true => Ok(BC26Status::Ok),
-            false => Err(BC26Status::Timeout),
-        }
-    }
 }
 
 #[cfg(test)]

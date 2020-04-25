@@ -46,6 +46,7 @@ pub extern "C" fn feed(qid: osMessageQueueId_t, begin: *mut u8, size: usize) -> 
         Err(r) => BC26Status::from(r),
     }
 }
+
 #[no_mangle]
 pub extern "C" fn get_bc26_qid<'a>(ptr: *mut MutexedBC26) -> osMessageQueueId_t {
     let bc26 = get_bc26_obj!(ptr);

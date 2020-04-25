@@ -13,7 +13,7 @@ pub mod export;
 
 mod allocator;
 mod panic;
-mod mqtt;
+//mod mqtt;
 mod cffi;
 mod bc26;
 mod constant;
